@@ -13,9 +13,7 @@ public class SearchTestBase extends TestBase {
       String _string = query.toString();
       SearchResult result = this.search.lenientSearch(_string);
       StringConcatenation _builder = new StringConcatenation();
-      _builder.append("Query [");
-      _builder.append(query, "");
-      _builder.append("] yielded no results");
+      _builder.append("Query [\u00AC\u00B4query\u00AC\u00AA] yielded no results");
       String _string_1 = _builder.toString();
       boolean _greaterThan = (result.docs.totalHits > 0);
       Assert.assertTrue(_string_1, _greaterThan);

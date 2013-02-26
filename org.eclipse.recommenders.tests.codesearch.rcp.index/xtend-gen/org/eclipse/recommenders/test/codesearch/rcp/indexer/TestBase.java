@@ -60,11 +60,7 @@ public class TestBase extends AbstractTestBase {
       List<Document> _documents = this.search.getDocuments();
       int numDocs = _documents.size();
       StringConcatenation _builder = new StringConcatenation();
-      _builder.append("The number of documents is not correct. Is [");
-      _builder.append(numDocs, "");
-      _builder.append("] but should be [");
-      _builder.append(expectedNum, "");
-      _builder.append("]");
+      _builder.append("The number of documents is not correct. Is [\u00AC\u00B4numDocs\u00AC\u00AA] but should be [\u00AC\u00B4expectedNum\u00AC\u00AA]");
       String _string = _builder.toString();
       boolean _equals = Integer.valueOf(numDocs).equals(Integer.valueOf(expectedNum));
       Assert.assertTrue(_string, _equals);
@@ -104,18 +100,15 @@ public class TestBase extends AbstractTestBase {
         }
       }
       StringConcatenation _builder = new StringConcatenation();
-      _builder.append("There was no document with ");
-      _builder.append(expected, "");
-      _builder.newLineIfNotEmpty();
+      _builder.append("There was no document with \u00AC\u00B4expected\u00AC\u00AA");
+      _builder.newLine();
       _builder.append("\t\t");
       _builder.newLine();
       _builder.append("\t\t");
       _builder.append("Documents present:");
       _builder.newLine();
       _builder.append("\t\t");
-      List<Document> _documents_1 = this.search.getDocuments();
-      CharSequence _allDocsAsString = this.getAllDocsAsString(_documents_1);
-      _builder.append(_allDocsAsString, "		");
+      _builder.append("\u00AC\u00B4getAllDocsAsString(search.getDocuments)\u00AC\u00AA");
       String _string = _builder.toString();
       Assert.assertTrue(_string, false);
       return false;
@@ -155,18 +148,15 @@ public class TestBase extends AbstractTestBase {
         }
       }
       StringConcatenation _builder = new StringConcatenation();
-      _builder.append("There was no document with (startswith) ");
-      _builder.append(expected, "");
-      _builder.newLineIfNotEmpty();
+      _builder.append("There was no document with (startswith) \u00AC\u00B4expected\u00AC\u00AA");
+      _builder.newLine();
       _builder.append("\t\t");
       _builder.newLine();
       _builder.append("\t\t");
       _builder.append("Documents present:");
       _builder.newLine();
       _builder.append("\t\t");
-      List<Document> _documents_1 = this.search.getDocuments();
-      CharSequence _allDocsAsString = this.getAllDocsAsString(_documents_1);
-      _builder.append(_allDocsAsString, "		");
+      _builder.append("\u00AC\u00B4getAllDocsAsString(search.getDocuments)\u00AC\u00AA");
       String _string = _builder.toString();
       Assert.assertTrue(_string, false);
       return false;
@@ -182,11 +172,10 @@ public class TestBase extends AbstractTestBase {
       List<Document> _documents = this.search.getDocuments();
       for (final Document document : _documents) {
         StringConcatenation _builder_1 = new StringConcatenation();
-        _builder_1.append(docsFound, "");
-        _builder_1.newLineIfNotEmpty();
+        _builder_1.append("\u00AC\u00B4docsFound\u00AC\u00AA");
+        _builder_1.newLine();
         _builder_1.append("    \t\t");
-        String _string = document.toString();
-        _builder_1.append(_string, "    		");
+        _builder_1.append("\u00AC\u00B4document.toString\u00AC\u00AA");
         docsFound = _builder_1;
       }
       return docsFound;
@@ -222,8 +211,7 @@ public class TestBase extends AbstractTestBase {
           }
           if (foundInDocument) {
             StringConcatenation _builder = new StringConcatenation();
-            _builder.append("There was a document with ");
-            _builder.append(expected, "");
+            _builder.append("There was a document with \u00AC\u00B4expected\u00AC\u00AA");
             String _string = _builder.toString();
             Assert.assertTrue(_string, false);
           }
@@ -236,9 +224,7 @@ public class TestBase extends AbstractTestBase {
   
   public String s(final String name, final String value) {
     StringConcatenation _builder = new StringConcatenation();
-    _builder.append(name, "");
-    _builder.append("=");
-    _builder.append(value, "");
+    _builder.append("\u00AC\u00B4name\u00AC\u00AA=\u00AC\u00B4value\u00AC\u00AA");
     return _builder.toString();
   }
   

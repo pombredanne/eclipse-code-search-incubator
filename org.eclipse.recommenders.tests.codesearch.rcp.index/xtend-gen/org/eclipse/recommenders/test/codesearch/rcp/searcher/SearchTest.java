@@ -2,7 +2,6 @@ package org.eclipse.recommenders.test.codesearch.rcp.searcher;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.DocumentTypeIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.SimpleNameIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IIndexer;
@@ -28,12 +27,7 @@ public class SearchTest extends SearchTestBase {
     List<IIndexer> _i = this.i(((IIndexer[])Conversions.unwrapArray(_newArrayList, IIndexer.class)));
     this.exercise(code, _i);
     StringConcatenation _builder_1 = new StringConcatenation();
-    _builder_1.append(Fields.TYPE, "");
-    _builder_1.append(":");
-    _builder_1.append(Fields.TYPE_CLASS, "");
-    _builder_1.append(" AND ");
-    _builder_1.append(Fields.SIMPLE_NAME, "");
-    _builder_1.append(":MyClass");
+    _builder_1.append("\u00AC\u00B4Fields::TYPE\u00AC\u00AA:\u00AC\u00B4Fields::TYPE_CLASS\u00AC\u00AA AND \u00AC\u00B4Fields::SIMPLE_NAME\u00AC\u00AA:MyClass");
     CharSequence query = _builder_1;
     this.assertQueryResultGtZero(query);
   }
@@ -52,12 +46,7 @@ public class SearchTest extends SearchTestBase {
     List<IIndexer> _i = this.i(((IIndexer[])Conversions.unwrapArray(_newArrayList, IIndexer.class)));
     this.exercise(code, _i);
     StringConcatenation _builder_1 = new StringConcatenation();
-    _builder_1.append(Fields.TYPE, "");
-    _builder_1.append(":");
-    _builder_1.append(Fields.TYPE_CLASS, "");
-    _builder_1.append(" AND ");
-    _builder_1.append(Fields.SIMPLE_NAME, "");
-    _builder_1.append(":myclass");
+    _builder_1.append("\u00AC\u00B4Fields::TYPE\u00AC\u00AA:\u00AC\u00B4Fields::TYPE_CLASS\u00AC\u00AA AND \u00AC\u00B4Fields::SIMPLE_NAME\u00AC\u00AA:myclass");
     CharSequence query = _builder_1;
     this.assertQueryResultGtZero(query);
   }
