@@ -2,51 +2,14 @@
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
 	xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 	<modelVersion>4.0.0</modelVersion>
-    <parent>
-        <groupId>org.eclipse</groupId>
-        <artifactId>eclipse-parent</artifactId>
-        <version>3</version>
-    </parent>
 	<groupId>org.eclipse.recommenders.codesearch</groupId>
 	<artifactId>org.eclipse.recommenders.codesearch.parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.1.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
 	<modules>
 		<module>org.eclipse.recommenders.codesearch.rcp.index</module>
+		<module>org.eclipse.recommenders.feature.codesearch.rcp</module>
         <!-- tests not working atm -->
 		<!--module>org.eclipse.recommenders.tests.codesearch.rcp.index</module-->
 	</modules>
-	
-   <properties>
-      <tycho-version>0.15.0</tycho-version>
-   </properties>
-
-   <build>
-      <plugins>
-         <plugin>
-            <groupId>org.eclipse.tycho</groupId>
-            <artifactId>tycho-maven-plugin</artifactId>
-            <version>${tycho-version}</version>
-            <extensions>true</extensions>
-         </plugin>
-        </plugins>
-   </build>
-   
-    <repositories>
-        <repository>
-            <id>eclipse-juno</id>
-            <url>http://download.eclipse.org/releases/juno</url>
-            <layout>p2</layout>
-        </repository>
-        <repository>
-            <id>recommenders-head</id>
-            <url>http://download.eclipse.org/recommenders/updates/head/e42</url>
-            <layout>p2</layout>
-        </repository>
-        <repository>
-            <id>orbit</id>
-            <url>http://download.eclipse.org/tools/orbit/downloads/drops/R20120526062928/repository/</url>
-            <layout>p2</layout>
-        </repository>
-    </repositories>
 </project>

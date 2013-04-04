@@ -2,7 +2,7 @@
 <feature
       id="org.eclipse.recommenders.feature.codesearch.rcp"
       label="Codesearch"
-      version="1.0.0.qualifier"
+      version="0.1.0.qualifier"
       license-feature="org.eclipse.recommenders.feature.license">
 
    <description url="http://www.example.com/description">
