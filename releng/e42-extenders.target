@@ -4,9 +4,9 @@
 <target name="Code Recommenders: Eclipse 4.2 Development and Build Server Target Platform" sequenceNumber="109">
 <locations>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
-<unit id="org.eclipse.recommenders.feature.3rd.nonorbit.feature.group" version="0.0.0"/>
+<unit id="org.eclipse.recommenders.feature.3rd.rcp.nonorbit.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.3rd.orbit.feature.group" version="0.0.0"/>
-<repository location="http://build.codetrails.com/updates/3rd/head/"/>
+<repository location="http://download.eclipse.org/recommenders/updates/head/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.swtbot.eclipse.feature.group" version="0.0.0"/>
@@ -23,13 +23,12 @@
 <unit id="org.eclipse.xtext.xbase.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.xtend.sdk.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.xtext.sdk.feature.group" version="0.0.0"/>
-<repository location="http://download.eclipse.org/releases/juno/"/>
+<repository location="http://download.eclipse.org/releases/kepler/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.recommenders.feature.completion.rcp.chain.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.extdoc.rcp.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.completion.rcp.intellig.feature.group" version="0.0.0"/>
-<unit id="org.eclipse.recommenders.feature.snipmatch.rcp.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.completion.rcp.subwords.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.completion.rcp.chain.source.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.rcp.core.feature.group" version="0.0.0"/>
@@ -40,7 +39,7 @@
 <unit id="org.eclipse.recommenders.feature.3rd.rcp.nonorbit.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.3rd.orbit.feature.group" version="0.0.0"/>
 <unit id="org.eclipse.recommenders.feature.3rd.rcp.nonjuno.feature.group" version="0.0.0"/>
-<repository location="http://download.eclipse.org/recommenders/updates/head/e42"/>
+<repository location="http://download.eclipse.org/recommenders/updates/head/"/>
 </location>
 </locations>
 <targetJRE path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
