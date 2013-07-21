@@ -52,6 +52,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.extdoc.rcp.providers.ExtdocProvider;
 import org.eclipse.recommenders.extdoc.rcp.providers.JavaSelectionSubscriber;
 import org.eclipse.recommenders.rcp.events.JavaSelectionEvent;
+import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.utils.Tuple;
 import org.eclipse.recommenders.utils.rcp.JavaElementResolver;
 import org.eclipse.recommenders.utils.rcp.JdtUtils;
@@ -216,7 +217,7 @@ public class LocalExamplesProvider extends ExtdocProvider {
                 final VariableDeclarationFragment declParent = (VariableDeclarationFragment) use.getParent();
 
                 final Expression initializer = declParent.getInitializer();
-                Optional<Tuple<IMethod, String>> def = absent();
+                Optional<Pair<IMethod, String>> def = absent();
                 if (initializer == null) {
                     term = prepareSearchTerm(Fields.VARIABLE_DEFINITION, Fields.DEFINITION_UNINITIALIZED);
                     break;
@@ -273,11 +274,11 @@ public class LocalExamplesProvider extends ExtdocProvider {
         return query;
     }
 
-    private static Optional<Tuple<IMethod, String>> findMethod(final MethodInvocation s) {
+    private static Optional<Pair<IMethod, String>> findMethod(final MethodInvocation s) {
         return findMethod(s.resolveMethodBinding());
     }
 
-    private static Optional<Tuple<IMethod, String>> findMethod(final SuperMethodInvocation s) {
+    private static Optional<Pair<IMethod, String>> findMethod(final SuperMethodInvocation s) {
         return findMethod(s.resolveMethodBinding());
     }
 
@@ -285,11 +286,11 @@ public class LocalExamplesProvider extends ExtdocProvider {
 //        return findMethod(s.resolveConstructorBinding());
 //    }
 
-    private static Optional<Tuple<IMethod, String>> findMethod(final ClassInstanceCreation s) {
+    private static Optional<Pair<IMethod, String>> findMethod(final ClassInstanceCreation s) {
         return findMethod(s.resolveConstructorBinding());
     }
 
-    private static Optional<Tuple<IMethod, String>> findMethod(final IMethodBinding b) {
+    private static Optional<Pair<IMethod, String>> findMethod(final IMethodBinding b) {
         if (b == null) {
             return absent();
         }
@@ -298,7 +299,7 @@ public class LocalExamplesProvider extends ExtdocProvider {
         if (method == null || !opt.isPresent()) {
             return absent();
         }
-        return of(Tuple.newTuple(method, opt.get()));
+        return of(Tuple.newPair(method, opt.get()));
     }
 
     private boolean isUsedInArguments(final SimpleName uses, final List arguments) {

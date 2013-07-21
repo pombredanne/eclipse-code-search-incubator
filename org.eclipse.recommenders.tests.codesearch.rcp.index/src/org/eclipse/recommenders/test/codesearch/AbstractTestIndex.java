@@ -25,6 +25,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.ui.IndexUpdateService;
 import org.eclipse.recommenders.test.codesearch.rcp.indexer.LuceneInMemoryFixture;
 import org.eclipse.recommenders.tests.jdt.JavaProjectFixture;
+import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.utils.Tuple;
 
 import com.google.common.collect.Lists;
@@ -106,7 +107,7 @@ public class AbstractTestIndex {
 
         final JavaProjectFixture fixture = new JavaProjectFixture(ResourcesPlugin.getWorkspace(), "testProject");
 
-        final Tuple<ICompilationUnit, Set<Integer>> struct = fixture.createFileAndParseWithMarkers("public class "
+        final Pair<ICompilationUnit, Set<Integer>> struct = fixture.createFileAndParseWithMarkers("public class "
                 + TestClassName + " {}");
 
         final CompilationUnit cu = CompilationUnitHelper.parse(struct.getFirst());
@@ -118,7 +119,7 @@ public class AbstractTestIndex {
 
         final JavaProjectFixture fixture = new JavaProjectFixture(ResourcesPlugin.getWorkspace(), "testProject");
 
-        final Tuple<ICompilationUnit, Set<Integer>> struct = fixture.createFileAndParseWithMarkers("public class "
+        final Pair<ICompilationUnit, Set<Integer>> struct = fixture.createFileAndParseWithMarkers("public class "
                 + TestClassName + " {}");
 
         final ICompilationUnit cu = struct.getFirst();

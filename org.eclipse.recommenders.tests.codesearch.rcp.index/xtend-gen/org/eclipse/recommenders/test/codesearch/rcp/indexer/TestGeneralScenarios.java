@@ -3,6 +3,7 @@ package org.eclipse.recommenders.test.codesearch.rcp.indexer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.core.ICompilationUnit;
@@ -34,6 +35,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.ITryCatc
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor.CompilationUnitVisitor;
 import org.eclipse.recommenders.test.codesearch.rcp.indexer.TestBase;
 import org.eclipse.recommenders.tests.jdt.JavaProjectFixture;
+import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.utils.Tuple;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
@@ -864,7 +866,7 @@ public class TestGeneralScenarios extends TestBase {
       JavaProjectFixture _javaProjectFixture = new JavaProjectFixture(_workspace, "projectName");
       final JavaProjectFixture fixture = _javaProjectFixture;
       String _string = code.toString();
-      final Tuple<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
+      final Pair<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
       final ICompilationUnit cu = struct.getFirst();
       ASTNode cuParsed = TestBase.parse(cu);
       CompilationUnitVisitor _compilationUnitVisitor = new CompilationUnitVisitor(this.f.index);
@@ -907,7 +909,7 @@ public class TestGeneralScenarios extends TestBase {
       JavaProjectFixture _javaProjectFixture = new JavaProjectFixture(_workspace, "projectName");
       final JavaProjectFixture fixture = _javaProjectFixture;
       String _string = code.toString();
-      final Tuple<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
+      final Pair<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
       final ICompilationUnit cu = struct.getFirst();
       ASTNode cuParsed = TestBase.parse(cu);
       CompilationUnitVisitor _compilationUnitVisitor = new CompilationUnitVisitor(this.f.index);
@@ -947,7 +949,7 @@ public class TestGeneralScenarios extends TestBase {
       JavaProjectFixture _javaProjectFixture = new JavaProjectFixture(_workspace, "projectName");
       final JavaProjectFixture fixture = _javaProjectFixture;
       String _string = code.toString();
-      final Tuple<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
+      final Pair<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
       final ICompilationUnit cu = struct.getFirst();
       ASTNode cuParsed = TestBase.parse(cu);
       CompilationUnitVisitor _compilationUnitVisitor = new CompilationUnitVisitor(this.f.index);
@@ -996,7 +998,7 @@ public class TestGeneralScenarios extends TestBase {
       JavaProjectFixture _javaProjectFixture = new JavaProjectFixture(_workspace, "projectName");
       final JavaProjectFixture fixture = _javaProjectFixture;
       String _string = code.toString();
-      final Tuple<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
+      final Pair<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
       final ICompilationUnit cu = struct.getFirst();
       ASTNode cuParsed = TestBase.parse(cu);
       CompilationUnitVisitor _compilationUnitVisitor = new CompilationUnitVisitor(this.f.index);
@@ -1042,7 +1044,7 @@ public class TestGeneralScenarios extends TestBase {
       JavaProjectFixture _javaProjectFixture = new JavaProjectFixture(_workspace, "projectName");
       final JavaProjectFixture fixture = _javaProjectFixture;
       String _string = code.toString();
-      final Tuple<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
+      final Pair<ICompilationUnit,Set<Integer>> struct = fixture.createFileAndParseWithMarkers(_string);
       final ICompilationUnit cu = struct.getFirst();
       ASTNode cuParsed = TestBase.parse(cu);
       CompilationUnitVisitor _compilationUnitVisitor = new CompilationUnitVisitor(this.f.index);
