@@ -7,17 +7,18 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
-package org.eclipse.recommenders.codesearch.rcp.index.extdoc;
+package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper.getIdentifier;
 import static org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher.prepareSearchTerm;
-import static org.eclipse.recommenders.extdoc.rcp.providers.ExtdocProvider.Status.NOT_AVAILABLE;
-import static org.eclipse.recommenders.extdoc.rcp.providers.ExtdocProvider.Status.OK;
-import static org.eclipse.recommenders.rcp.events.JavaSelectionEvent.JavaSelectionLocation.METHOD_BODY;
+import static org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation.METHOD_BODY;
+import static org.eclipse.recommenders.apidocs.rcp.ApidocProvider.Status.NOT_AVAILABLE;
+import static org.eclipse.recommenders.apidocs.rcp.ApidocProvider.Status.OK;
 
 import java.io.IOException;
 import java.util.List;
@@ -45,17 +46,16 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
 import org.eclipse.jdt.internal.corext.dom.LinkedNodeFinder;
+import org.eclipse.recommenders.apidocs.rcp.ApidocProvider;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
-import org.eclipse.recommenders.extdoc.rcp.providers.ExtdocProvider;
-import org.eclipse.recommenders.extdoc.rcp.providers.JavaSelectionSubscriber;
-import org.eclipse.recommenders.rcp.events.JavaSelectionEvent;
+import org.eclipse.recommenders.apidocs.rcp.JavaSelectionSubscriber;
+import org.eclipse.recommenders.rcp.JavaElementSelectionEvent;
 import org.eclipse.recommenders.utils.Pair;
-import org.eclipse.recommenders.utils.Tuple;
-import org.eclipse.recommenders.utils.rcp.JavaElementResolver;
-import org.eclipse.recommenders.utils.rcp.JdtUtils;
+import org.eclipse.recommenders.rcp.JavaElementResolver;
+import org.eclipse.recommenders.rcp.utils.JdtUtils;
 import org.eclipse.swt.widgets.Composite;
 
 import com.google.common.base.Optional;
@@ -63,12 +63,12 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Lists;
 
 @SuppressWarnings("restriction")
-public class LocalExamplesProvider extends ExtdocProvider {
+public class LocalExamplesProvider extends ApidocProvider {
 
     private final JavaElementResolver jdtResolver;
     private final CodeSearcher searcher;
     private Stopwatch watch;
-    private JavaSelectionEvent event;
+    private JavaElementSelectionEvent event;
 
     private MethodDeclaration enclosingMethod;
     private TypeDeclaration enclosingType;
@@ -85,7 +85,7 @@ public class LocalExamplesProvider extends ExtdocProvider {
     }
 
     @JavaSelectionSubscriber(METHOD_BODY)
-    public Status onFieldSelection(final IField var, final JavaSelectionEvent event, final Composite parent)
+    public Status onFieldSelection(final IField var, final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         this.event = event;
         startMeasurement();
@@ -106,7 +106,7 @@ public class LocalExamplesProvider extends ExtdocProvider {
     }
 
     @JavaSelectionSubscriber
-    public Status onVariableSelection(final ILocalVariable var, final JavaSelectionEvent event, final Composite parent)
+    public Status onVariableSelection(final ILocalVariable var, final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         this.event = event;
         startMeasurement();
@@ -299,7 +299,7 @@ public class LocalExamplesProvider extends ExtdocProvider {
         if (method == null || !opt.isPresent()) {
             return absent();
         }
-        return of(Tuple.newPair(method, opt.get()));
+        return of(Pair.newPair(method, opt.get()));
     }
 
     private boolean isUsedInArguments(final SimpleName uses, final List arguments) {

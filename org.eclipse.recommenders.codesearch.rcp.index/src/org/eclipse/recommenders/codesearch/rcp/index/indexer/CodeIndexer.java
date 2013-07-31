@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer;
@@ -34,8 +35,8 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.utils.IIndexInforma
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.utils.IndexInformationCache;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor.CompilationUnitVisitor;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
-import org.eclipse.recommenders.rcp.RecommendersPlugin;
-import org.eclipse.recommenders.utils.rcp.internal.RecommendersUtilsPlugin;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -129,7 +130,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
         try {
         	cu.accept(visitor);
         } catch (final Exception e) {
-            RecommendersUtilsPlugin.logError(e, "Exception while indexing %s", ResourcePathIndexer.getFile(cu));
+            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception while indexing %s", ResourcePathIndexer.getFile(cu));
         }
         
         // add to internal cache
@@ -166,7 +167,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
                 return getMinTimestamp(docs);
             }
         } catch (final Exception e) {
-            RecommendersPlugin.logError(e, "failed to fetch last indexed timestamp for CU from code-search index.");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to fetch last indexed timestamp for CU from code-search index.");
         }
 
         return Optional.absent();
@@ -218,7 +219,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
         try {
             writer.commit();
         } catch (final Exception e) {
-            RecommendersPlugin.logError(e, "failed to commit latest changes to code-search index.");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to commit latest changes to code-search index.");
         }
     }
 
@@ -227,7 +228,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
             writer.forceMerge(10, true);
             writer.commit();
         } catch (final Exception e) {
-            RecommendersPlugin.logError(e, "failed to compact code-search index.");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to compact code-search index.");
         }
     }
 
@@ -245,7 +246,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
             writer.deleteAll();
             writer.commit();
         } catch (final IOException e) {
-            RecommendersPlugin.logError(e, "failed to truncate code-search index.");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to truncate code-search index.");
         }
     }
 
@@ -266,7 +267,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
 
             writer.close();
         } catch (final Exception ex) {
-            RecommendersPlugin.logError(ex, "failed to close code-search index.");
+        	LoggingUtils.logError(ex, CodesearchIndexPlugin.getDefault(), "failed to close code-search index.");
         }
     }
 

@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor;
@@ -27,7 +28,7 @@ import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.TryStatement;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.AstHelper;
 import org.eclipse.recommenders.utils.names.ITypeName;
-import org.eclipse.recommenders.utils.rcp.ast.BindingUtils;
+import org.eclipse.recommenders.rcp.utils.AstBindings;
 
 public abstract class TypeUseVisitor extends ASTVisitor {
 
@@ -102,7 +103,7 @@ public abstract class TypeUseVisitor extends ASTVisitor {
     };
 
     private void handleTypeUseInternal(final ITypeBinding typeBinding) {
-        final ITypeName typeName = BindingUtils.toTypeName(typeBinding).orNull();
+        final ITypeName typeName = AstBindings.toTypeName(typeBinding).orNull();
         if (!AstHelper.isPrimitiveOrArrayOrNullOrObjectOrString(typeName)) {
             handleTypeUse(typeBinding);
         }

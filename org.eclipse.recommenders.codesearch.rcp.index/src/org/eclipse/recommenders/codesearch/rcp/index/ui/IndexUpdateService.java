@@ -8,6 +8,7 @@
  * Contributors:
  *    Marcel Bruch - initial API and implementation.
  *    Tobias Boehm - implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.ui;
@@ -40,12 +41,12 @@ import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.ResourcePathIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.TimestampIndexer;
-import org.eclipse.recommenders.rcp.RecommendersPlugin;
-import org.eclipse.recommenders.rcp.events.JavaModelEvents.CompilationUnitAdded;
-import org.eclipse.recommenders.rcp.events.JavaModelEvents.CompilationUnitRemoved;
-import org.eclipse.recommenders.rcp.events.JavaModelEvents.CompilationUnitSaved;
-import org.eclipse.recommenders.rcp.events.JavaModelEvents.JavaProjectOpened;
-import org.eclipse.recommenders.utils.rcp.internal.RecommendersUtilsPlugin;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitAdded;
+import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitRemoved;
+import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitSaved;
+import org.eclipse.recommenders.rcp.JavaModelEvents.JavaProjectOpened;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -99,7 +100,7 @@ public class IndexUpdateService {
                                 try {
                                     r.run(sub);
                                 } catch (final Exception e) {
-                                    RecommendersUtilsPlugin.logError(e, "Exception while indexing project '%s'", p);
+                                    LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception while indexing project '%s'", p);
                                 }
                             }
                         }
@@ -182,7 +183,7 @@ public class IndexUpdateService {
             final CompilationUnit ast = SharedASTProvider.getAST(cu, SharedASTProvider.WAIT_YES, null);
             indexer.index(ast);
         } catch (final Exception e) {
-            RecommendersUtilsPlugin.logError(e, "Failed to index '%s'", cu.getResource().getFullPath());
+            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(),"Failed to index '%s'", cu.getResource().getFullPath());
         }
     }
 
@@ -201,7 +202,7 @@ public class IndexUpdateService {
                 }
             }
         } catch (final IOException e) {
-            RecommendersPlugin.logError(e, "error during indexing");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "error during indexing");
         }
     }
 

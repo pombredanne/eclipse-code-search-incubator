@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.searcher;
@@ -30,8 +31,9 @@ import org.apache.lucene.search.Query;
 import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.eclipse.recommenders.codesearch.rcp.index.termvector.ITermVectorConsumable;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 import org.eclipse.recommenders.utils.Checks;
-import org.eclipse.recommenders.utils.rcp.internal.RecommendersUtilsPlugin;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
@@ -123,7 +125,7 @@ public class CodeSearcher implements ITermVectorConsumable {
 
                 result.addAll(Lists.newArrayList(values));
             } catch (final IOException e) {
-                RecommendersUtilsPlugin.logError(e, "Exception during reopening of index reader");
+                LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
             }
         }
         result.remove(null);
@@ -141,7 +143,7 @@ public class CodeSearcher implements ITermVectorConsumable {
                 searcher = new IndexSearcher(reader);
             }
         } catch (final Exception e) {
-            RecommendersUtilsPlugin.logError(e, "Exception during reopening of index reader");
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
         }
     }
 

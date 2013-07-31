@@ -7,9 +7,10 @@
  * 
  * Contributors:
  *    Marcel Bruch - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
-package org.eclipse.recommenders.codesearch.rcp.index.extdoc;
+package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import static java.lang.String.format;
 
@@ -27,11 +28,12 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.window.ToolTip;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
-import org.eclipse.recommenders.internal.extdoc.rcp.ui.ExtdocUtils;
-import org.eclipse.recommenders.rcp.RecommendersPlugin;
-import org.eclipse.recommenders.utils.Names;
-import org.eclipse.recommenders.utils.rcp.JavaElementResolver;
-import org.eclipse.recommenders.utils.rcp.RCPUtils;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.internal.apidocs.rcp.ApidocsViewUtils;
+import org.eclipse.recommenders.utils.names.Names;
+import org.eclipse.recommenders.rcp.JavaElementResolver;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.RCPUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -65,7 +67,7 @@ public final class Renderer implements Runnable {
         final Composite container = new Composite(parent, SWT.NONE);
         container.setLayout(new GridLayout());
         container.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
-        ExtdocUtils.setInfoBackgroundColor(container);
+        ApidocsViewUtils.setInfoBackgroundColor(container);
         final Label l = new Label(container, SWT.NONE);
         final String msg = format("Found %s examples for type '%s'. Search took %s.", searchResults.docs.totalHits,
                 Names.vm2srcSimpleTypeName(typeName), searchDuration);
@@ -98,7 +100,7 @@ public final class Renderer implements Runnable {
                     try {
                         JavaUI.openInEditor(create);
                     } catch (final Exception e) {
-                        RecommendersPlugin.logError(e, "Failed to open method declaration in editor");
+                        LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to open method declaration in editor");
                     }
                 }
             }

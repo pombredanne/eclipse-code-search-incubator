@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer;
@@ -25,7 +26,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
 import org.eclipse.recommenders.utils.names.IMethodName;
 import org.eclipse.recommenders.utils.names.ITypeName;
-import org.eclipse.recommenders.utils.rcp.ast.BindingUtils;
+import org.eclipse.recommenders.rcp.utils.AstBindings;
 
 import com.google.common.base.Optional;
 
@@ -75,7 +76,7 @@ public final class BindingHelper {
         if (b == null) {
             return absent();
         }
-        final Optional<ITypeName> opt = BindingUtils.toTypeName(b);
+        final Optional<ITypeName> opt = AstBindings.toTypeName(b);
         if (!opt.isPresent()) {
             return absent();
         }
@@ -94,7 +95,7 @@ public final class BindingHelper {
         if (b == null) {
             return absent();
         }
-        final Optional<IMethodName> opt = BindingUtils.toMethodName(b);
+        final Optional<IMethodName> opt = AstBindings.toMethodName(b);
         if (!opt.isPresent()) {
             return absent();
         }

@@ -8,6 +8,7 @@
  * Contributors:
  *    Marcel Bruch - initial API and implementation.
  *    Tobias Boehm - implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.ui;
@@ -41,8 +42,8 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexerConfigBean;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.ResourcePathIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.TimestampIndexer;
-import org.eclipse.recommenders.rcp.RecommendersPlugin;
-import org.eclipse.recommenders.utils.rcp.internal.RecommendersUtilsPlugin;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 
 public class ProjectIndexerRunnable implements IRunnableWithProgress {
 
@@ -73,7 +74,7 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
                 analyzeRoot(root);
             }
         } catch (final Exception e) {
-            RecommendersPlugin.logError(e, "Error during code search indexing");
+            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Error during code search indexing");
         } finally {
             closeMonitor();
         }
@@ -157,7 +158,7 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
             indexer.delete(cuLocation);
             indexer.index(ast, new CodeIndexerConfigBean(true, 1.5f));
         } catch (final Exception e) {
-            RecommendersUtilsPlugin.logError(e, "Failed to index '%s'", cu.getResource().getFullPath());
+        	LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to index '%s'", cu.getResource().getFullPath());
         }
     }
 

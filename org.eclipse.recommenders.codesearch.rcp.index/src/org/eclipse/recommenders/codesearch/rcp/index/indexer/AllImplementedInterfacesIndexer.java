@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer;
@@ -17,7 +18,7 @@ import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IClassIndexer;
 import org.eclipse.recommenders.utils.names.ITypeName;
-import org.eclipse.recommenders.utils.rcp.ast.BindingUtils;
+import org.eclipse.recommenders.rcp.utils.AstBindings;
 
 import com.google.common.base.Optional;
 
@@ -35,7 +36,7 @@ public class AllImplementedInterfacesIndexer extends ImplementedInterfacesIndexe
             ITypeBinding superclass = interface_;
 
             for (; superclass != null;) {
-                final Optional<ITypeName> opt = BindingUtils.toTypeName(superclass);
+                final Optional<ITypeName> opt = AstBindings.toTypeName(superclass);
 
                 if (opt.isPresent()) {
                 	CodeIndexer.addFieldToDocument(document, Fields.ALL_IMPLEMENTED_TYPES, opt.get().getIdentifier());

@@ -7,9 +7,10 @@
  * 
  * Contributors:
  *    Marcel Bruch - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
-package org.eclipse.recommenders.codesearch.rcp.index.extdoc;
+package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import static org.apache.commons.lang3.StringUtils.isEmpty;
 
@@ -34,8 +35,8 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.utils.IOUtils;
-import org.eclipse.recommenders.utils.rcp.JavaElementResolver;
-import org.eclipse.recommenders.utils.rcp.ast.ASTNodeUtils;
+import org.eclipse.recommenders.rcp.JavaElementResolver;
+import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
@@ -62,7 +63,7 @@ public class LabelProvider extends StyledCellLabelProvider {
             final SearchResult searchResults) {
         this.searchterms = searchterms;
     }
-
+    //Kav
     /**
      * Finds all relevant statements and creates a *very* simple summary
      */

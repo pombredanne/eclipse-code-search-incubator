@@ -9,7 +9,7 @@
  *    Marcel Bruch - initial API and implementation.
  */
 
-package org.eclipse.recommenders.codesearch.rcp.index.extdoc;
+package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import org.apache.lucene.document.Document;
 import org.eclipse.jdt.core.IMethod;

@@ -7,9 +7,10 @@
  * 
  * Contributors:
  *    Marcel Bruch - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
-package org.eclipse.recommenders.codesearch.rcp.index.extdoc;
+package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -31,11 +32,13 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
-import org.eclipse.recommenders.rcp.RecommendersPlugin;
-import org.eclipse.recommenders.utils.rcp.JavaElementResolver;
-import org.eclipse.recommenders.utils.rcp.ast.ASTNodeUtils;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.JavaElementResolver;
+import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.core.runtime.Plugin;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -124,7 +127,7 @@ final class ContentProvider implements ILazyContentProvider {
                         // ast);
                         astMethod = ASTNodeUtils.find(ast, jdtMethod).orNull();
                     } catch (final Exception e) {
-                        RecommendersPlugin.logError(e, "failed to find declaring method %s", jdtMethod);
+                        LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to find declaring method %s", jdtMethod);
                     }
                     return astMethod != null;
                 }

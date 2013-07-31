@@ -36,7 +36,6 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor.Compilation
 import org.eclipse.recommenders.test.codesearch.rcp.indexer.TestBase;
 import org.eclipse.recommenders.tests.jdt.JavaProjectFixture;
 import org.eclipse.recommenders.utils.Pair;
-import org.eclipse.recommenders.utils.Tuple;
 import org.eclipse.xtend2.lib.StringConcatenation;
 import org.eclipse.xtext.xbase.lib.CollectionLiterals;
 import org.eclipse.xtext.xbase.lib.Conversions;

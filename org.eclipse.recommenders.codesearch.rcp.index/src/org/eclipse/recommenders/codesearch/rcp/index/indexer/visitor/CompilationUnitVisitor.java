@@ -7,6 +7,7 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Recommenders API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor;
@@ -30,7 +31,8 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IFieldIn
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IMethodIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.ITryCatchBlockIndexer;
-import org.eclipse.recommenders.utils.rcp.internal.RecommendersUtilsPlugin;
+import org.eclipse.recommenders.codesearch.rcp.index.wiring.CodesearchIndexPlugin;
+import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 
 import com.google.common.collect.Lists;
 
@@ -147,7 +149,7 @@ public class CompilationUnitVisitor extends ASTVisitor {
         	document.setBoost(settings.getDocumentBoost());
             index.addDocument(document);
         } catch (final IOException e) {
-            RecommendersUtilsPlugin.logError(e, "Exception during document save.");
+            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during document save.");
         }
     }
 }
