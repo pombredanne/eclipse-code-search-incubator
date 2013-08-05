@@ -17,9 +17,6 @@ import static com.google.common.base.Optional.of;
 import static org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper.getIdentifier;
 import static org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher.prepareSearchTerm;
 import static org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation.METHOD_BODY;
-import static org.eclipse.recommenders.apidocs.rcp.ApidocProvider.Status.NOT_AVAILABLE;
-import static org.eclipse.recommenders.apidocs.rcp.ApidocProvider.Status.OK;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -85,16 +82,16 @@ public class LocalExamplesProvider extends ApidocProvider {
     }
 
     @JavaSelectionSubscriber(METHOD_BODY)
-    public Status onFieldSelection(final IField var, final JavaElementSelectionEvent event, final Composite parent)
+    public void onFieldSelection(final IField var, final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         this.event = event;
         startMeasurement();
         if (!findAstNodes()) {
-            return NOT_AVAILABLE;
+            return;
         }
 
         if (!findVariableType(var.getTypeSignature())) {
-            return NOT_AVAILABLE;
+            return;
         }
 
         final BooleanQuery query = createQuery();
@@ -102,20 +99,20 @@ public class LocalExamplesProvider extends ApidocProvider {
         stopMeasurement();
 
         runSyncInUiThread(new Renderer(searchResult, parent, varType, watch.toString(), jdtResolver, searchterms));
-        return OK;
+       
     }
 
     @JavaSelectionSubscriber
-    public Status onVariableSelection(final ILocalVariable var, final JavaElementSelectionEvent event, final Composite parent)
+    public void onVariableSelection(final ILocalVariable var, final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         this.event = event;
         startMeasurement();
         if (!findAstNodes()) {
-            return NOT_AVAILABLE;
+            return;
         }
 
         if (!findVariableType(var.getTypeSignature())) {
-            return NOT_AVAILABLE;
+            return;
         }
 
         final BooleanQuery query = createQuery();
@@ -123,7 +120,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         stopMeasurement();
 
         runSyncInUiThread(new Renderer(searchResults, parent, varType, watch.toString(), jdtResolver, searchterms));
-        return OK;
+        
     }
 
     private boolean findAstNodes() {
