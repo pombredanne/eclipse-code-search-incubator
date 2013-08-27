@@ -19,7 +19,7 @@
    <extension
          point="org.eclipse.recommenders.extdoc.rcp.provider">
       <provider
-            class="org.eclipse.recommenders.injection.ExtensionFactory:org.eclipse.recommenders.codesearch.rcp.index.extdoc.LocalExamplesProvider"
+            class="org.eclipse.recommenders.injection.ExtensionFactory:org.eclipse.recommenders.codesearch.rcp.index.apidoc.LocalExamplesProvider"
             image="icons/obj16/search.png"
             name="Local Code Examples">
       </provider>

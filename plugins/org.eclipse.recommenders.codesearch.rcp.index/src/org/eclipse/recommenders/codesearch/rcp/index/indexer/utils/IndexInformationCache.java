@@ -7,26 +7,27 @@
  * 
  * Contributors:
  *    Tobias Boehm - initial API and implementation.
+ *    Kavith Thiranga - Refactorings to support new Guava API
  */
 
 package org.eclipse.recommenders.codesearch.rcp.index.indexer.utils;
 
 import java.io.File;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import com.google.common.base.Optional;
-import com.google.common.collect.MapMaker;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 
 public class IndexInformationCache implements IIndexInformationProvider {
 
-    private final Map<File, Long> cache = new MapMaker().concurrencyLevel(1).maximumSize(3000)
-            .expiration(1, TimeUnit.MINUTES).makeMap();
+    private final Cache<File, Long> cache = CacheBuilder.newBuilder().maximumSize(3000)
+            .expireAfterWrite(1, TimeUnit.MINUTES).build();
 
     @Override
     public Optional<Long> getLastIndexed(final File location) {
-        if (cache.containsKey(location)) {
-            return Optional.of(cache.get(location));
+        if (cache.asMap().containsKey(location)) {
+            return Optional.of(cache.getIfPresent(location));
         }
 
         return Optional.absent();

@@ -12,12 +12,12 @@
 
 package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
-import static org.apache.commons.lang3.StringUtils.isEmpty;
+import static com.google.common.collect.Lists.newArrayList;
+import static org.apache.commons.lang3.ArrayUtils.subarray;
+import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.List;
 
-import org.apache.commons.lang3.ArrayUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -34,9 +34,9 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
-import org.eclipse.recommenders.utils.IOUtils;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
+import org.eclipse.recommenders.utils.IOUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.graphics.Color;
@@ -63,7 +63,7 @@ public class LabelProvider extends StyledCellLabelProvider {
             final SearchResult searchResults) {
         this.searchterms = searchterms;
     }
-    //Kav
+
     /**
      * Finds all relevant statements and creates a *very* simple summary
      */
@@ -151,7 +151,7 @@ public class LabelProvider extends StyledCellLabelProvider {
                     if (((ReturnStatement) sup).getExpression() instanceof SimpleName) {
                         break;
                     }
-                //$FALL-THROUGH$
+                    //$FALL-THROUGH$
                 case ASTNode.METHOD_INVOCATION:
                 case ASTNode.SUPER_METHOD_INVOCATION:
                 case ASTNode.FIELD_ACCESS:
@@ -178,17 +178,17 @@ public class LabelProvider extends StyledCellLabelProvider {
             // Kristjian...
             sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
         }
-        final String[] split = StringUtils.split(sb.toString(), IOUtils.LINE_SEPARATOR);
-        final String summary = StringUtils.join(ArrayUtils.subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
+        final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
+        final String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
         cell.setText(summary);
-        final List<StyleRange> ranges = Lists.newArrayList();
+        final List<StyleRange> ranges = newArrayList();
         final Color color = JavaUI.getColorManager().getColor(IJavaColorConstants.JAVA_KEYWORD);
 
         for (final String term : searchterms) {
 
             int index = 0;
             while (true) {
-                index = StringUtils.indexOfIgnoreCase(summary, term, index);
+                index = indexOfIgnoreCase(summary, term, index);
                 if (index == -1) {
                     break;
                 }
