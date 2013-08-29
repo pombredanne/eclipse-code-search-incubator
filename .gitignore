@@ -11,6 +11,18 @@ target/
 aggregators/
 screenshots/
 
+## xtend-gen should not be checked in
+xtend-gen/
+
+## jrebel project config files
+rebel.xml
+
+## no settings (except xtend)
+.project
+.classpath
+.settings/
+!.settings/org.eclipse.xtend.core.Xtend.prefs
+
 ## various other file types we don't want to have in the repository:
 .DS_Store
 *~
@@ -18,6 +30,3 @@ screenshots/
 *.licensed
 *.aux
 *_trace
-
-/plugins/org.eclipse.recommenders.mining/
-/tests/org.eclipse.recommenders.tests.mining/

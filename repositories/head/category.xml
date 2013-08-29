@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <site>
-	<feature id="org.eclipse.recommenders.codesearch.feature" version="0.0.0">
-		<category name="main"/>
-	</feature>
-	<feature id="org.eclipse.recommenders.codesearch.feature.source" version="0.0.0">
-		<category name="sources"/>
-	</feature>
-	<category-def name="main" label="Code Recommenders"/>
-	<category-def name="sources" label="Sources"/>
+   <feature id="org.eclipse.recommenders.codesearch.feature" version="0.0.0">
+      <category name="main"/>
+   </feature>
+   <feature id="org.eclipse.recommenders.codesearch.feature.source" version="0.0.0">
+      <category name="sources"/>
+   </feature>
+   <feature id="org.eclipse.recommenders.rcp.feature" version="0.0.0">
+      <category name="deps"/>
+   </feature>
+   <category-def name="main" label="Recommenders Incubator"/>
+   <category-def name="sources" label="Sources"/>
+   <category-def name="deps" label="Dependencies (do not install)"/>
 </site>

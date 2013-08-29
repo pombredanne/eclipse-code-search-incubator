@@ -14,8 +14,8 @@
 	<modules>
 		<module>releng/licenses</module>
 		<module>targets/luna</module>
-		<module>plugins/org.eclipse.recommenders.codesearch.rcp.index</module>
-		<!--module>tests/org.eclipse.recommenders.tests.codesearch.rcp.index</module -->
+		<module>plugins/org.eclipse.recommenders.codesearch.rcp</module>
+		<module>tests/org.eclipse.recommenders.codesearch.rcp.tests</module>
 		<module>features/org.eclipse.recommenders.codesearch.feature</module>
 		<module>repositories/head</module>
 	</modules>

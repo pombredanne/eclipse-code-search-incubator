@@ -11,6 +11,7 @@
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
 <unit id="org.eclipse.recommenders.rcp.feature.feature.group" version="0.0.0"/>
+<unit id="org.eclipse.recommenders.rcp.tests.feature.feature.group" version="0.0.0"/>
 <repository location="http://download.eclipse.org/recommenders/updates/head/"/>
 </location>
 <location includeAllPlatforms="false" includeConfigurePhase="false" includeMode="slicer" includeSource="true" type="InstallableUnit">
@@ -36,6 +37,7 @@
 <unit id="org.apache.commons.pool.source" version="1.6.0.v201204271246"/>
 <unit id="org.apache.commons.httpclient" version="3.1.0.v201012070820"/>
 <unit id="org.apache.commons.httpclient.source" version="3.1.0.v201012070820"/>
+<unit id="org.apache.log4j" version="1.2.15.v201012070815"/>
 <unit id="org.apache.lucene" version="3.5.0.v20120725-1805"/>
 <unit id="org.apache.lucene.source" version="3.5.0.v20120725-1805"/>
 <unit id="org.apache.lucene.core" version="3.5.0.v20120725-1805"/>
@@ -46,6 +48,13 @@
 <unit id="org.apache.lucene.queries.source" version="3.5.0.v20120725-1805"/>
 <unit id="org.apache.solr.client.solrj" version="3.5.0.v20120530-0900"/>
 <unit id="org.apache.solr.client.solrj.source" version="3.5.0.v20120530-0900"/>
+<unit id="org.hamcrest" version="1.1.0.v20090501071000"/>
+<unit id="org.hamcrest.integration" version="1.1.0.v201303031500"/>
+<unit id="org.hamcrest.integration.source" version="1.1.0.v201303031500"/>
+<unit id="org.hamcrest.library" version="1.1.0.v20090501071000"/>
+<unit id="org.hamcrest.library.source" version="1.1.0.v20090501071000"/>
+<unit id="org.hamcrest.text" version="1.1.0.v20090501071000"/>
+<unit id="org.hamcrest.text.source" version="1.1.0.v20090501071000"/>
 <unit id="org.mockito" version="1.8.4.v201303031500"/>
 <unit id="org.mockito.source" version="1.8.4.v201303031500"/>
 <unit id="org.objenesis" version="1.0.0.v201105211943"/>
