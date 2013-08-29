@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Code Indexer
 Bundle-SymbolicName: org.eclipse.recommenders.codesearch.rcp.index;singleton:=true
-Bundle-Version: 1.100.0.qualifier
+Bundle-Version: 0.5.0.qualifier
 Require-Bundle: org.apache.lucene;bundle-version="3.5.0",
  org.eclipse.recommenders.rcp;bundle-version="1.100.0",
  org.eclipse.recommenders.utils;bundle-version="1.100.0",
