@@ -10,6 +10,6 @@
       <category name="deps"/>
    </feature>
    <category-def name="main" label="Recommenders Incubator"/>
-   <category-def name="sources" label="Sources"/>
-   <category-def name="deps" label="Dependencies (do not install)"/>
+   <category-def name="sources" label="Recommenders Incubator (Sources)"/>
+   <category-def name="deps" label="Recommenders Incubator Dependencies (do not install)"/>
 </site>

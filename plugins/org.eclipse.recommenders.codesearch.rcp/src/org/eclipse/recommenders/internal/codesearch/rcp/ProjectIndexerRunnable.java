@@ -42,7 +42,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexerConfigBean;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.ResourcePathIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.TimestampIndexer;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 
 public class ProjectIndexerRunnable implements IRunnableWithProgress {
 
@@ -65,7 +65,7 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
     public void run(final IProgressMonitor monitor) throws InvocationTargetException, InterruptedException {
 
         try {
-            this.roots = project.getPackageFragmentRoots();
+            roots = project.getPackageFragmentRoots();
             this.monitor = monitor;
             openMonitor();
 
@@ -73,7 +73,7 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
                 analyzeRoot(root);
             }
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Error during code search indexing");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Error during code search indexing");
         } finally {
             closeMonitor();
         }
@@ -153,11 +153,11 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
             if (ast == null) {
                 return;
             }
-            
+
             indexer.delete(cuLocation);
             indexer.index(ast, new CodeIndexerConfigBean(true, 1.5f));
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to index '%s'", cu.getResource().getFullPath());
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to index '%s'", cu.getResource().getFullPath());
         }
     }
 
@@ -203,7 +203,7 @@ public class ProjectIndexerRunnable implements IRunnableWithProgress {
         // ast.setProperty("location", rootLocation);
         // ast.setProperty("project", javaProject);
         monitor.subTask(unitName);
-        
+
         indexer.index(ast, new CodeIndexerConfigBean(false, 1.0f));
     }
 

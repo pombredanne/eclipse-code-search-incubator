@@ -33,12 +33,11 @@ import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Table;
-import org.eclipse.core.runtime.Plugin;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
@@ -127,7 +126,8 @@ final class ContentProvider implements ILazyContentProvider {
                         // ast);
                         astMethod = ASTNodeUtils.find(ast, jdtMethod).orNull();
                     } catch (final Exception e) {
-                        LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to find declaring method %s", jdtMethod);
+                        Logs.logError(e, CodesearchIndexPlugin.getDefault(), "failed to find declaring method %s",
+                                jdtMethod);
                     }
                     return astMethod != null;
                 }

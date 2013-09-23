@@ -45,7 +45,7 @@ import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitAdded;
 import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitRemoved;
 import org.eclipse.recommenders.rcp.JavaModelEvents.CompilationUnitSaved;
 import org.eclipse.recommenders.rcp.JavaModelEvents.JavaProjectOpened;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
@@ -66,7 +66,7 @@ public class IndexUpdateService {
             super(name);
             this.indexer = indexer;
             this.projects = projects;
-            this.root = workspace;
+            root = workspace;
             setRule(MUTEX);
             schedule(30000);
         }
@@ -99,7 +99,8 @@ public class IndexUpdateService {
                                 try {
                                     r.run(sub);
                                 } catch (final Exception e) {
-                                    LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception while indexing project '%s'", p);
+                                    Logs.logError(e, CodesearchIndexPlugin.getDefault(),
+                                            "Exception while indexing project '%s'", p);
                                 }
                             }
                         }
@@ -182,7 +183,7 @@ public class IndexUpdateService {
             final CompilationUnit ast = SharedASTProvider.getAST(cu, SharedASTProvider.WAIT_YES, null);
             indexer.index(ast);
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to index '%s'", cu.getResource().getFullPath());
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to index '%s'", cu.getResource().getFullPath());
         }
     }
 
@@ -201,7 +202,7 @@ public class IndexUpdateService {
                 }
             }
         } catch (final IOException e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "error during indexing");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "error during indexing");
         }
     }
 

@@ -32,7 +32,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IIndexer
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.IMethodIndexer;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.interfaces.ITryCatchBlockIndexer;
 import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 
 import com.google.common.collect.Lists;
 
@@ -53,10 +53,10 @@ public class CompilationUnitVisitor extends ASTVisitor {
     public CompilationUnitVisitor(final CodeIndexer index) {
         this(index, new CodeIndexerDefaultConfigBean());
     }
-    
+
     public CompilationUnitVisitor(final CodeIndexer index, final CodeIndexerConfigBean settings) {
         this.index = index;
-        this.indexer = Lists.newArrayList();
+        indexer = Lists.newArrayList();
         this.settings = settings;
     }
 
@@ -149,7 +149,7 @@ public class CompilationUnitVisitor extends ASTVisitor {
             document.setBoost(settings.getDocumentBoost());
             index.addDocument(document);
         } catch (final IOException e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during document save.");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during document save.");
         }
     }
 }

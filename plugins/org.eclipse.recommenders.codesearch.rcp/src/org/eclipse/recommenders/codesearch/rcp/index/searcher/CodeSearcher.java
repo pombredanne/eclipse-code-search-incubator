@@ -32,7 +32,7 @@ import org.apache.lucene.search.ScoreDoc;
 import org.apache.lucene.search.TopDocs;
 import org.eclipse.recommenders.codesearch.rcp.index.termvector.ITermVectorConsumable;
 import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 import org.eclipse.recommenders.utils.Checks;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -99,7 +99,7 @@ public class CodeSearcher implements ITermVectorConsumable {
      */
     public SearchResult lenientSearch(final Query query) throws IOException {
         renewReader();
-        
+
         final TopDocs docs = searcher.search(query, reader.numDocs() + 1);
         return new SearchResult(query, docs, searcher);
     }
@@ -110,7 +110,7 @@ public class CodeSearcher implements ITermVectorConsumable {
     public SearchResult lenientSearch(final Query query, final int maxHits) throws IOException {
         Checks.ensureIsGreaterOrEqualTo(maxHits, 1, "max hits must be greater zero");
         renewReader();
-        
+
         final TopDocs docs = searcher.search(query, maxHits);
         return new SearchResult(query, docs, searcher);
     }
@@ -125,7 +125,7 @@ public class CodeSearcher implements ITermVectorConsumable {
 
                 result.addAll(Lists.newArrayList(values));
             } catch (final IOException e) {
-                LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
+                Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
             }
         }
         result.remove(null);
@@ -143,7 +143,7 @@ public class CodeSearcher implements ITermVectorConsumable {
                 searcher = new IndexSearcher(reader);
             }
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Exception during reopening of index reader");
         }
     }
 

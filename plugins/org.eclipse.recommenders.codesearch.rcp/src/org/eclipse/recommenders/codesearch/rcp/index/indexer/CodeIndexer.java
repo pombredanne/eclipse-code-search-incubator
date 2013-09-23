@@ -36,7 +36,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.indexer.utils.IndexInformat
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.visitor.CompilationUnitVisitor;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
 
 import com.google.common.base.Optional;
 import com.google.common.collect.Lists;
@@ -47,7 +47,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
 
     private static boolean verbose = false; // XXX: Always set me back to false
                                             // please...
-    
+
     private static final List<IIndexer> defaultIndexer = getDefaultIndexer();
 
     private static IFieldIndexingStrategy indexingFieldInfoProvider = new SimpleNameBasedStrategy();
@@ -71,8 +71,9 @@ public class CodeIndexer implements ICompilationUnitIndexer {
 
     private static void addInternal(final Document document, final String fieldName, final String fieldValue,
             Field.Store store, Field.Index index) {
-        if (fieldValue == null)
+        if (fieldValue == null) {
             return;
+        }
 
         if (verbose) {
             // XXX: Replace with better logging
@@ -113,30 +114,31 @@ public class CodeIndexer implements ICompilationUnitIndexer {
         index(cu, tmpIndexerCollection);
     }
 
-
     @Override
     public void index(final CompilationUnit cu, final List<IIndexer> indexer) throws IOException {
         index(cu, new CodeIndexerDefaultConfigBean(), indexer);
     }
-    
-    private void index(final CompilationUnit cu, CodeIndexerConfigBean settings, final List<IIndexer> indexer) throws IOException {
-        if(settings.isDeleteDocumentFirst()) {
+
+    private void index(final CompilationUnit cu, CodeIndexerConfigBean settings, final List<IIndexer> indexer)
+            throws IOException {
+        if (settings.isDeleteDocumentFirst()) {
             delete(cu);
         }
-        
+
         final CompilationUnitVisitor visitor = new CompilationUnitVisitor(this, settings);
         visitor.addIndexer(indexer);
-        
+
         try {
             cu.accept(visitor);
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Exception while indexing %s", ResourcePathIndexer.getFile(cu));
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "Exception while indexing %s",
+                    ResourcePathIndexer.getFile(cu));
         }
-        
+
         // add to internal cache
         indexInformationProvider.setLastIndexed(ResourcePathIndexer.getFile(cu), TimestampIndexer.getTime());
     }
-    
+
     @Override
     public long lastIndexed(final File location) {
         Optional<Long> lastIndexed = indexInformationProvider.getLastIndexed(location);
@@ -167,7 +169,8 @@ public class CodeIndexer implements ICompilationUnitIndexer {
                 return getMinTimestamp(docs);
             }
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to fetch last indexed timestamp for CU from code-search index.");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(),
+                    "failed to fetch last indexed timestamp for CU from code-search index.");
         }
 
         return Optional.absent();
@@ -211,7 +214,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
     @Override
     public void delete(final CompilationUnit cu) throws IOException {
         final String cuPath = ResourcePathIndexer.getPath(cu);
-        
+
         delete(prepareSearchTerm(Fields.RESOURCE_PATH, cuPath));
     }
 
@@ -219,7 +222,8 @@ public class CodeIndexer implements ICompilationUnitIndexer {
         try {
             writer.commit();
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to commit latest changes to code-search index.");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(),
+                    "failed to commit latest changes to code-search index.");
         }
     }
 
@@ -228,13 +232,13 @@ public class CodeIndexer implements ICompilationUnitIndexer {
             writer.forceMerge(10, true);
             writer.commit();
         } catch (final Exception e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to compact code-search index.");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "failed to compact code-search index.");
         }
     }
 
     /**
-     * Adds a document to the index without previously checking and
-     * deleting old versions of the "same" document in the index.
+     * Adds a document to the index without previously checking and deleting old versions of the "same" document in the
+     * index.
      */
     public void addDocument(final Document d) throws IOException {
         writer.addDocument(d);
@@ -246,7 +250,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
             writer.deleteAll();
             writer.commit();
         } catch (final IOException e) {
-            LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "failed to truncate code-search index.");
+            Logs.logError(e, CodesearchIndexPlugin.getDefault(), "failed to truncate code-search index.");
         }
     }
 
@@ -267,7 +271,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
 
             writer.close();
         } catch (final Exception ex) {
-            LoggingUtils.logError(ex, CodesearchIndexPlugin.getDefault(), "failed to close code-search index.");
+            Logs.logError(ex, CodesearchIndexPlugin.getDefault(), "failed to close code-search index.");
         }
     }
 
@@ -276,7 +280,7 @@ public class CodeIndexer implements ICompilationUnitIndexer {
             addDocument(doc);
         }
     }
-    
+
     public static List<IIndexer> getDefaultIndexer() {
 
         final List<IIndexer> list = Lists.newArrayList();

@@ -30,10 +30,10 @@ import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.internal.apidocs.rcp.ApidocsViewUtils;
 import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
-import org.eclipse.recommenders.utils.names.Names;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
-import org.eclipse.recommenders.rcp.utils.LoggingUtils;
-import org.eclipse.recommenders.rcp.utils.RCPUtils;
+import org.eclipse.recommenders.rcp.utils.Logs;
+import org.eclipse.recommenders.rcp.utils.Selections;
+import org.eclipse.recommenders.utils.names.Names;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
@@ -54,7 +54,7 @@ public final class Renderer implements Runnable {
 
     public Renderer(final SearchResult searchResult, final Composite parent, final String typeName,
             final String searchDuration, final JavaElementResolver jdtResolver, final List<String> searchterms) {
-        this.searchResults = searchResult;
+        searchResults = searchResult;
         this.parent = parent;
         this.typeName = typeName;
         this.searchDuration = searchDuration;
@@ -86,7 +86,7 @@ public final class Renderer implements Runnable {
 
             @Override
             public void doubleClick(final DoubleClickEvent event) {
-                final Optional<Selection> opt = RCPUtils.first(event.getSelection());
+                final Optional<Selection> opt = Selections.getFirstSelected(event.getSelection());
                 if (opt.isPresent()) {
                     final Selection s = opt.get();
                     if (s.isError()) {
@@ -100,7 +100,8 @@ public final class Renderer implements Runnable {
                     try {
                         JavaUI.openInEditor(create);
                     } catch (final Exception e) {
-                        LoggingUtils.logError(e, CodesearchIndexPlugin.getDefault(), "Failed to open method declaration in editor");
+                        Logs.logError(e, CodesearchIndexPlugin.getDefault(),
+                                "Failed to open method declaration in editor");
                     }
                 }
             }
