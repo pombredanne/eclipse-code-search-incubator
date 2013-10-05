@@ -180,9 +180,9 @@ public class LabelProvider extends StyledCellLabelProvider {
         }
         final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
         final String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
-        cell.setText(summary);
+       
         final List<StyleRange> ranges = newArrayList();
-        final Color color = JavaUI.getColorManager().getColor(IJavaColorConstants.JAVA_KEYWORD);
+        final Color color = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
 
         for (final String term : searchterms) {
 
@@ -192,12 +192,13 @@ public class LabelProvider extends StyledCellLabelProvider {
                 if (index == -1) {
                     break;
                 }
-                ranges.add(new StyleRange(index, term.length(), color, null));
+                ranges.add(new StyleRange(index, term.length(), null, color));
                 index += term.length();
             }
         }
         cell.setFont(JFaceResources.getTextFont());
         cell.setStyleRanges(ranges.toArray(new StyleRange[0]));
+        cell.setText(summary);
     }
 
     @Override
