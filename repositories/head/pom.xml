@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.eclipse.recommenders</groupId>
 		<artifactId>repositories</artifactId>
-		<version>1.100.0-SNAPSHOT</version>
+		<version>1.100.0</version>
 	</parent>
 	<groupId>org.eclipse.recommenders.codesearch</groupId>
 	<artifactId>head</artifactId>
@@ -21,10 +21,7 @@
 	<repositories>
 		<repository>
 			<id>repo.eclipse.org</id>
-			<url>https://repo.eclipse.org/content/repositories/recommenders-snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<url>https://repo.eclipse.org/content/repositories/recommenders/</url>
 		</repository>
 	</repositories>
 	<build>

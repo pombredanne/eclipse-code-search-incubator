@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.eclipse.recommenders</groupId>
 		<artifactId>targets</artifactId>
-		<version>1.100.0-SNAPSHOT</version>
+		<version>1.100.0</version>
 		<relativePath>../pom.xml</relativePath>
 	</parent>
 	<groupId>org.eclipse.recommenders.codesearch</groupId>
@@ -16,10 +16,7 @@
 	<repositories>
 		<repository>
 			<id>repo.eclipse.org</id>
-			<url>https://repo.eclipse.org/content/repositories/recommenders-snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<url>https://repo.eclipse.org/content/repositories/recommenders/</url>
 		</repository>
 	</repositories>
 </project>

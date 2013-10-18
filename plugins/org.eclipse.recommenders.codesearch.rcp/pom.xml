@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.eclipse.recommenders</groupId>
 		<artifactId>plugins</artifactId>
-		<version>1.100.0-SNAPSHOT</version>
+		<version>1.100.0</version>
 	</parent>
 	<groupId>org.eclipse.recommenders.codesearch</groupId>
 	<artifactId>org.eclipse.recommenders.codesearch.rcp</artifactId>
@@ -14,20 +14,14 @@
 	<repositories>
 		<repository>
 			<id>repo.eclipse.org</id>
-			<url>https://repo.eclipse.org/content/repositories/recommenders-snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<url>https://repo.eclipse.org/content/repositories/recommenders/</url>
 		</repository>
 	</repositories>
 	<!-- Plugin repositories are also used to locate plugin dependencies. -->
 	<pluginRepositories>
 		<pluginRepository>
 			<id>repo.eclipse.org</id>
-			<url>https://repo.eclipse.org/content/repositories/recommenders-snapshots/</url>
-			<snapshots>
-				<enabled>true</enabled>
-			</snapshots>
+			<url>https://repo.eclipse.org/content/repositories/recommenders/</url>
 		</pluginRepository>
 	</pluginRepositories>
 	<build>
