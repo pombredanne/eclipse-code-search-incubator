@@ -18,6 +18,8 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.List;
 
+import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
@@ -33,6 +35,7 @@ import org.eclipse.jdt.ui.text.IJavaColorConstants;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
@@ -171,22 +174,28 @@ public class LabelProvider extends StyledCellLabelProvider {
         return !statements.isEmpty();
     }
 
-    private void setCellText(final ViewerCell cell) {
+    private void setCellText(final ViewerCell cell){
         final StringBuilder sb = new StringBuilder();
+        final Selection s = (Selection) cell.getElement();
+        final List<StyleRange> ranges = newArrayList();
         for (final ASTNode n : statements) {
             // term matching in here:... waiting for contribution of
             // Kristjian...
             sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
         }
         final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
-        final String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
+        
+        String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
+        IMethod method = ((Selection) cell.getElement()).element();
+        String header = getHeader(cell.getElement());
        
-        final List<StyleRange> ranges = newArrayList();
-        final Color color = Display.getCurrent().getSystemColor(SWT.COLOR_YELLOW);
+        ranges.add(new StyleRange(0, header.length(), Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY), null));
+        summary = header+summary;
+        final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
 
         for (final String term : searchterms) {
 
-            int index = 0;
+            int index = header.length();
             while (true) {
                 index = indexOfIgnoreCase(summary, term, index);
                 if (index == -1) {
@@ -235,6 +244,20 @@ public class LabelProvider extends StyledCellLabelProvider {
             }
         }
         return null;
+    }
+    
+    private String getHeader(final Object element){
+        if (element instanceof Selection) {
+            final Selection s = (Selection) element;
+            if (s.method != null) {
+                final Optional<TypeDeclaration> enclosingType = ASTNodeUtils.getClosestParent(s.method,
+                        TypeDeclaration.class);
+
+                return (enclosingType.isPresent() ? "class " + enclosingType.get().resolveBinding().getQualifiedName()+" | method "+s.element().getElementName()
+                        : "") + "\n";
+            } 
+        }
+        return "";
     }
 
     @Override

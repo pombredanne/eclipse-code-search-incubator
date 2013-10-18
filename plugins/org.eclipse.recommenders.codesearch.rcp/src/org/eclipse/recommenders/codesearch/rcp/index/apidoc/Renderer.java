@@ -38,7 +38,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.internal.misc.StatusUtil;
+import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.google.common.base.Optional;
 
@@ -71,10 +74,9 @@ public final class Renderer implements Runnable {
         final Label l = new Label(container, SWT.NONE);
         final String msg = format("Found %s examples for type '%s'. Search took %s.", searchResults.docs.totalHits,
                 Names.vm2srcSimpleTypeName(typeName), searchDuration);
-        l.setText(msg);
-
+        l.setText(msg);        
         final TableViewer v = new TableViewer(container, SWT.VIRTUAL);
-        ColumnViewerToolTipSupport.enableFor(v, ToolTip.NO_RECREATE);
+        ColumnViewerToolTipSupport.enableFor(v, ToolTip.RECREATE);
         v.setLabelProvider(new LabelProvider(jdtResolver, searchterms, searchResults));
         v.setContentProvider(new ContentProvider(searchResults, jdtResolver));
         // v.setUseHashlookup(true);
@@ -82,11 +84,12 @@ public final class Renderer implements Runnable {
         // v.getTable().setLinesVisible(true);
         v.setItemCount(searchResults.scoreDocs().length);
         v.getControl().setLayoutData(GridDataFactory.fillDefaults().hint(300, 200).grab(true, false).create());
-        v.addDoubleClickListener(new IDoubleClickListener() {
-
+        v.addDoubleClickListener(new IDoubleClickListener() {        
+        
             @Override
             public void doubleClick(final DoubleClickEvent event) {
                 final Optional<Selection> opt = Selections.getFirstSelected(event.getSelection());
+                final ITextEditor editor;
                 if (opt.isPresent()) {
                     final Selection s = opt.get();
                     if (s.isError()) {
@@ -98,11 +101,14 @@ public final class Renderer implements Runnable {
                     final String handle = s.doc.get(Fields.JAVA_ELEMENT_HANDLE);
                     final IJavaElement create = JavaCore.create(handle);
                     try {
-                        JavaUI.openInEditor(create);
+                        editor = (ITextEditor) JavaUI.openInEditor(create);
+                        JavaUI.revealInEditor(editor, create);
+                        
                     } catch (final Exception e) {
                         Logs.logError(e, CodesearchIndexPlugin.getDefault(),
                                 "Failed to open method declaration in editor");
                     }
+                    
                 }
             }
         });

@@ -81,7 +81,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         this.jdtResolver = jdtResolver;
     }
 
-    @JavaSelectionSubscriber(METHOD_BODY)
+    @JavaSelectionSubscriber
     public void onFieldSelection(final IField var, final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         this.event = event;
@@ -141,12 +141,13 @@ public class LocalExamplesProvider extends ApidocProvider {
                 break;
             }
         }
-        return varNode != null && enclosingMethod != null && enclosingType != null;
+        return varNode != null && ((enclosingMethod != null) || (enclosingType != null)) ;
     }
 
     private boolean findVariableType(final String typeSignature) {
 
         final Optional<IMethod> method = JdtUtils.resolveMethod(enclosingMethod);
+        //final Optional<IType> type = jdtVarType.getDeclaringType()
         if (!method.isPresent()) {
             return false;
         }
