@@ -17,7 +17,9 @@ import static com.google.common.base.Optional.of;
 import static org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper.getIdentifier;
 import static org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher.prepareSearchTerm;
 import static org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation.METHOD_BODY;
+
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -26,7 +28,9 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
+import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
@@ -50,10 +54,12 @@ import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.apidocs.rcp.JavaSelectionSubscriber;
 import org.eclipse.recommenders.rcp.JavaElementSelectionEvent;
+import org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation;
 import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.JdtUtils;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.MessageBox;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -71,26 +77,33 @@ public class LocalExamplesProvider extends ApidocProvider {
     private TypeDeclaration enclosingType;
     private SimpleName varNode;
     private String varType;
+    private int selectedNodeType;
+    private int parentNodeType;
 
     List<String> searchterms;
     private IType jdtVarType;
 
     @Inject
-    public LocalExamplesProvider(final CodeSearcher searcher, final JavaElementResolver jdtResolver) throws IOException {
+    public LocalExamplesProvider(final CodeSearcher searcher, final JavaElementResolver jdtResolver) throws IOException
+    {
         this.searcher = searcher;
         this.jdtResolver = jdtResolver;
     }
 
     @JavaSelectionSubscriber
     public void onFieldSelection(final IField var, final JavaElementSelectionEvent event, final Composite parent)
-            throws IOException, JavaModelException {
+            throws IOException, JavaModelException
+    {
+        clear();
         this.event = event;
         startMeasurement();
-        if (!findAstNodes()) {
+        if (!findAstNodes())
+        {
             return;
         }
 
-        if (!findVariableType(var.getTypeSignature())) {
+        if (!findVariableType(var.getTypeSignature()))
+        {
             return;
         }
 
@@ -99,12 +112,14 @@ public class LocalExamplesProvider extends ApidocProvider {
         stopMeasurement();
 
         runSyncInUiThread(new Renderer(searchResult, parent, varType, watch.toString(), jdtResolver, searchterms));
-       
+        
     }
 
     @JavaSelectionSubscriber
     public void onVariableSelection(final ILocalVariable var, final JavaElementSelectionEvent event, final Composite parent)
-            throws IOException, JavaModelException {
+            throws IOException, JavaModelException
+    {
+        clear();
         this.event = event;
         startMeasurement();
         if (!findAstNodes()) {
@@ -122,18 +137,82 @@ public class LocalExamplesProvider extends ApidocProvider {
         runSyncInUiThread(new Renderer(searchResults, parent, varType, watch.toString(), jdtResolver, searchterms));
         
     }
+    
+    @JavaSelectionSubscriber
+    public void onTypeSelection(final IType type, final JavaElementSelectionEvent event, final Composite parent)
+            throws IOException, JavaModelException
+    {
+        clear();
+        this.event = event;
+        
+        startMeasurement();
+        if (!findAstNodes()) {
+            return;
+        }
 
-    private boolean findAstNodes() {
+        jdtVarType = type;
+        varType = jdtResolver.toRecType(type).getIdentifier();
+        BooleanQuery query = null;
+        
+        switch (selectedNodeType) {
+            case ASTNode.MARKER_ANNOTATION:
+            case ASTNode.SINGLE_MEMBER_ANNOTATION:
+            case ASTNode.ANNOTATION_TYPE_MEMBER_DECLARATION:
+            case ASTNode.ANNOTATION_TYPE_DECLARATION:
+                query = createAnnotationQuery();
+                break;
+            case ASTNode.SIMPLE_TYPE:
+                query = createTypeQuery();
+                break;
+            default:
+                break;
+        }
+        final SearchResult searchResults = searcher.lenientSearch(query, 5000);
+        stopMeasurement();
+        
+        runSyncInUiThread(new Renderer(searchResults, parent, varType, watch.toString(), jdtResolver, searchterms));
+        
+    }
+
+    @JavaSelectionSubscriber
+    public void onElementSelection(final IJavaElement element,
+            final JavaElementSelectionEvent event, final Composite parent)
+            throws IOException, JavaModelException {
+        clear();
+        this.event = event;
+        startMeasurement();
+        findAstNodes();
+        switch (event.getSelectedNode().get().getNodeType()) {
+            case ASTNode.NORMAL_ANNOTATION:
+                //query = createAnnotationQuery();
+                break;
+
+        default:
+            break;
+        }
+        
+        stopMeasurement();
+    }
+
+    private boolean findAstNodes()
+    {
         final Optional<ASTNode> astNode = event.getSelectedNode();
         if (!astNode.isPresent()) {
             return false;
         }
+        
         final ASTNode node = astNode.get();
         if (node.getNodeType() == ASTNode.SIMPLE_NAME) {
             varNode = (SimpleName) node;
         }
+        
+        // Get actual selected node type from SimpleName node
+        selectedNodeType = node.getParent().getNodeType();
+        // Get type of the parent node of currently selected node
+        parentNodeType = node.getParent().getParent().getNodeType();
 
-        for (ASTNode parent = varNode; parent != null; parent = parent.getParent()) {
+        for (ASTNode parent = varNode; parent != null; parent = parent.getParent())
+        {
             if (parent instanceof MethodDeclaration) {
                 enclosingMethod = (MethodDeclaration) parent;
             } else if (parent instanceof TypeDeclaration) {
@@ -141,11 +220,13 @@ public class LocalExamplesProvider extends ApidocProvider {
                 break;
             }
         }
-        return varNode != null && ((enclosingMethod != null) || (enclosingType != null)) ;
+        
+        return varNode != null && ((enclosingMethod != null) || (enclosingType != null));
+        
     }
 
-    private boolean findVariableType(final String typeSignature) {
-
+    private boolean findVariableType(final String typeSignature)
+    {
         final Optional<IMethod> method = JdtUtils.resolveMethod(enclosingMethod);
         //final Optional<IType> type = jdtVarType.getDeclaringType()
         if (!method.isPresent()) {
@@ -158,11 +239,44 @@ public class LocalExamplesProvider extends ApidocProvider {
         }
         jdtVarType = opt.get();
         varType = jdtResolver.toRecType(opt.get()).getIdentifier();
+        
         return varType != null;
+        
+    }
+    
+    private BooleanQuery createAnnotationQuery()
+    {
+        final BooleanQuery query = new BooleanQuery();
+        searchterms = new ArrayList<String>();
+        Term term;
+        term = prepareSearchTerm(Fields.ANNOTATIONS, BindingHelper.getTypeIdentifier(varNode).get());
+        query.add(new TermQuery(term), Occur.MUST);
+        searchterms.add(varNode.getIdentifier());
+        
+        return query;
+    }
+    
+    private BooleanQuery createTypeQuery()
+    {        
+        final BooleanQuery query = new BooleanQuery();
+        searchterms = new ArrayList<String>();
+        Term term;
+        
+        switch(parentNodeType)
+        {
+            // Check whether this is an extended type
+            case ASTNode.TYPE_DECLARATION:
+                term = prepareSearchTerm(Fields.ALL_EXTENDED_TYPES, BindingHelper.getTypeIdentifier(varNode).get());
+                query.add(new TermQuery(term), Occur.MUST);
+                searchterms.add(varNode.getIdentifier());
+                break;
+        }
+        
+        return query;
     }
 
-    private BooleanQuery createQuery() {
-
+    private BooleanQuery createQuery()
+    {
         // TODO: cleanup needed
 
         final BooleanQuery query = new BooleanQuery();
@@ -311,5 +425,17 @@ public class LocalExamplesProvider extends ApidocProvider {
 
     private void stopMeasurement() {
         watch.stop();
+    }
+
+    private void clear() {
+        event = null;
+        enclosingMethod = null;
+        enclosingType = null;
+        varNode = null;
+        varType = null;
+        searchterms = null;
+        jdtVarType = null;
+        selectedNodeType=0;
+        parentNodeType=0;
     }
 }

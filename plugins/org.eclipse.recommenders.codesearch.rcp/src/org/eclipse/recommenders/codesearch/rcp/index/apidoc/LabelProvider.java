@@ -18,18 +18,23 @@ import static org.apache.commons.lang3.StringUtils.*;
 
 import java.util.List;
 
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
+import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.ReturnStatement;
 import org.eclipse.jdt.core.dom.SimpleName;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationStatement;
+import org.eclipse.jdt.internal.corext.refactoring.structure.ASTNodeSearchUtil;
 import org.eclipse.jdt.ui.JavaElementLabelProvider;
 import org.eclipse.jdt.ui.JavaUI;
+import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jdt.ui.text.IColorManager;
 import org.eclipse.jdt.ui.text.IJavaColorConstants;
 import org.eclipse.jface.resource.JFaceResources;
@@ -59,6 +64,7 @@ public class LabelProvider extends StyledCellLabelProvider {
 
     private final JavaElementLabelProvider jdtLabelProvider = new JavaElementLabelProvider();
     private MethodDeclaration astMethod;
+    private IType jdtType;
     private List<ASTNode> statements;
     private final List<String> searchterms;
 
@@ -70,23 +76,46 @@ public class LabelProvider extends StyledCellLabelProvider {
     /**
      * Finds all relevant statements and creates a *very* simple summary
      */
+    @SuppressWarnings("restriction")
     @Override
     public void update(final ViewerCell cell) {
         cell.setFont(JFaceResources.getTextFont());
         final Selection s = (Selection) cell.getElement();
         astMethod = s.method;
         final String varname = s.varname;
+        
         if (s.isError()) {
             cell.setText(s.exception.getMessage());
             return;
         }
-
-        if (astMethod == ContentProvider.EMPTY) {
-            cell.setText("// failed to resolve method.");
+        jdtType = (IType) s.handle.getAncestor(IJavaElement.TYPE);
+        if (astMethod == ContentProvider.MDEMPTY && jdtType==null ) {
+            cell.setText("// failed to resolve method and class.");
             setCellToCommentStyle(cell);
             return;
         }
-
+        // This is a node that doesn't have an enclosing method. Generate summary with class details
+        if(isEmpty(varname) && jdtType != null ){
+            statements = Lists.newArrayList();
+            //add statements of type declaration
+            if(astMethod == ContentProvider.MDEMPTY || astMethod == null){
+                
+                TypeDeclaration td;
+                try {
+                    td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
+                    statements.add(td);
+                } catch (JavaModelException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+                
+            }
+            else{
+                statements.add(astMethod);
+            }
+            setCellTextLimited(cell);
+            return;
+        }
         if (!findStatements(varname)) {
             cell.setText("// No interesting statements found.\n// Either index is outdated or method is not actually using this variable?");
             setCellToCommentStyle(cell);
@@ -96,11 +125,43 @@ public class LabelProvider extends StyledCellLabelProvider {
         setCellText(cell);
     }
 
+    private void setCellTextLimited(ViewerCell cell) {
+        final StringBuilder sb = new StringBuilder();
+        final Selection s = (Selection) cell.getElement();
+        final List<StyleRange> ranges = newArrayList();
+        for (final ASTNode n : statements) {
+            if(n!=null)
+             sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
+        }
+        final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
+        
+        String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
+        final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
+
+        for (final String term : searchterms) {
+
+            int index = 0;
+            while (true) {
+                index = indexOfIgnoreCase(summary, term, index);
+                if (index == -1) {
+                    break;
+                }
+                ranges.add(new StyleRange(index, term.length(), null, color));
+                index += term.length();
+            }
+        }
+        cell.setFont(JFaceResources.getTextFont());
+        cell.setStyleRanges(ranges.toArray(new StyleRange[0]));
+        cell.setText(summary);
+        
+    }
+
     private void setCellToCommentStyle(final ViewerCell cell) {
         final IColorManager colorManager = JavaUI.getColorManager();
         final Color color = colorManager.getColor(IJavaColorConstants.JAVA_MULTI_LINE_COMMENT);
         final StyleRange[] ranges = { new StyleRange(0, cell.getText().length(), color, null) };
         cell.setStyleRanges(ranges);
+        
     }
 
     private boolean findStatements(final String varname) {

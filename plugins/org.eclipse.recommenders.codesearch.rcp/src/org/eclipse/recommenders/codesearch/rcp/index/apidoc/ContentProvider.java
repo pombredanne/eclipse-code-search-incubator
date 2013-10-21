@@ -21,11 +21,13 @@ import java.util.concurrent.TimeUnit;
 import org.apache.lucene.document.Document;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
+import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.ITypeRoot;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
+import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -47,12 +49,12 @@ final class ContentProvider implements ILazyContentProvider {
             .getRuntime().availableProcessors(), 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(20),
 
     new ThreadFactoryBuilder().setPriority(Thread.MIN_PRIORITY).build());
-    public static MethodDeclaration EMPTY;
+    public static MethodDeclaration MDEMPTY;
     static {
         final AST ast = AST.newAST(AST.JLS4);
-        EMPTY = ast.newMethodDeclaration();
-        EMPTY.setName(ast.newSimpleName("not_found"));
-        EMPTY.setBody(ast.newBlock());
+        MDEMPTY = ast.newMethodDeclaration();
+        MDEMPTY.setName(ast.newSimpleName("not_found"));
+        MDEMPTY.setBody(ast.newBlock());     
     }
 
     private TableViewer viewer;
@@ -72,6 +74,7 @@ final class ContentProvider implements ILazyContentProvider {
         try {
             s.submit(new Runnable() {
                 private IMethod jdtMethod;
+                private IType jdtType;
                 private MethodDeclaration astMethod;
                 private IJavaElement element;
 
@@ -85,15 +88,12 @@ final class ContentProvider implements ILazyContentProvider {
                             updateIndex(new Selection(e), index);
                             return;
                         }
-                        if (!findJdtMethod()) {
-                            updateIndex(new Selection(EMPTY, "", doc), index);
+                        // There can be a selection without an enclosing method. eg. annotation, extended types, etc.
+                        if (!findAstMethod() && !findJdtType()) {
+                            updateIndex(new Selection(element, MDEMPTY, "", doc), index);
                             return;
                         }
-                        if (!findAstMethod()) {
-                            updateIndex(new Selection(EMPTY, "", doc), index);
-                            return;
-                        }
-                        updateIndex(new Selection(astMethod, doc.get(Fields.VARIABLE_NAME), doc), index);
+                        updateIndex(new Selection(element, astMethod, doc.get(Fields.VARIABLE_NAME), doc), index);
                     } catch (final Exception e) {
                         updateIndex(new Selection(e), index);
                     }
@@ -109,9 +109,17 @@ final class ContentProvider implements ILazyContentProvider {
                     jdtMethod = (IMethod) element.getAncestor(IJavaElement.METHOD);
                     return jdtMethod != null;
                 }
-
+                
+                private boolean findJdtType(){
+                    jdtType = (IType) element.getAncestor(IJavaElement.TYPE);
+                    return jdtType != null;
+                }
+                
                 private boolean findAstMethod() {
                     try {
+                        if(!findJdtMethod()){
+                            return false;
+                        }
                         final ITypeRoot cu = jdtMethod.getTypeRoot();
                         if (cu == null) {
                             return false;

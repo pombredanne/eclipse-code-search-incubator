@@ -103,6 +103,7 @@ public final class Renderer implements Runnable {
                     try {
                         editor = (ITextEditor) JavaUI.openInEditor(create);
                         JavaUI.revealInEditor(editor, create);
+                        //editor.getDocumentProvider().
                         
                     } catch (final Exception e) {
                         Logs.logError(e, CodesearchIndexPlugin.getDefault(),

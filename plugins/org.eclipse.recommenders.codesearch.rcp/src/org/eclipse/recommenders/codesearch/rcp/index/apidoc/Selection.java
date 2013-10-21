@@ -12,25 +12,28 @@
 package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
 import org.apache.lucene.document.Document;
+import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 
 public class Selection {
 
     public final MethodDeclaration method;
+    public final IJavaElement handle;
     public final String varname;
     public final Document doc;
     public final Exception exception;
 
-    public Selection(final MethodDeclaration method, final String varname, final Document doc) {
-        this(method, varname, doc, null);
+    public Selection(final IJavaElement handle, final MethodDeclaration method, final String varname, final Document doc) {
+        this(handle, method, varname, doc, null);
     }
 
     public Selection(final Exception e) {
-        this(null, null, null, e);
+        this(null, null, null, null, e);
     }
 
-    protected Selection(final MethodDeclaration method, final String varname, final Document doc, final Exception e) {
+    protected Selection(final IJavaElement handle, final MethodDeclaration method, final String varname, final Document doc, final Exception e) {
+        this.handle = handle;
         this.method = method;
         this.varname = varname;
         this.doc = doc;
@@ -43,5 +46,6 @@ public class Selection {
 
     IMethod element() {
         return (IMethod) method.resolveBinding().getJavaElement();
-    }
+    }    
+    
 }
