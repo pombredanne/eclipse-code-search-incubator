@@ -16,7 +16,6 @@ import static com.google.common.base.Optional.absent;
 import static com.google.common.base.Optional.of;
 import static org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper.getIdentifier;
 import static org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher.prepareSearchTerm;
-import static org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation.METHOD_BODY;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +27,6 @@ import org.apache.lucene.index.Term;
 import org.apache.lucene.search.BooleanClause.Occur;
 import org.apache.lucene.search.BooleanQuery;
 import org.apache.lucene.search.TermQuery;
-import org.eclipse.jdt.core.IAnnotation;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
@@ -54,12 +52,10 @@ import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.apidocs.rcp.JavaSelectionSubscriber;
 import org.eclipse.recommenders.rcp.JavaElementSelectionEvent;
-import org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation;
 import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.JdtUtils;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.MessageBox;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -414,7 +410,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         return of(Pair.newPair(method, opt.get()));
     }
 
-    private boolean isUsedInArguments(final SimpleName uses, final List arguments) {
+    private boolean isUsedInArguments(final SimpleName uses, @SuppressWarnings("rawtypes") final List arguments) {
         return arguments.size() == 0 || arguments.indexOf(uses) == -1;
     }
 

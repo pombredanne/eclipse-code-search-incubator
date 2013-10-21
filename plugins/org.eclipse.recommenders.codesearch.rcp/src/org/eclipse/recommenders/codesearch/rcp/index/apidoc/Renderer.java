@@ -38,13 +38,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.ui.IEditorPart;
-import org.eclipse.ui.editors.text.TextEditor;
 import org.eclipse.ui.internal.misc.StatusUtil;
 import org.eclipse.ui.texteditor.ITextEditor;
 
 import com.google.common.base.Optional;
 
+@SuppressWarnings("restriction")
 public final class Renderer implements Runnable {
 
     private final JavaElementResolver jdtResolver;
@@ -66,17 +65,21 @@ public final class Renderer implements Runnable {
     }
 
     @Override
-    public void run() {
+    public void run()
+    {
         final Composite container = new Composite(parent, SWT.NONE);
         container.setLayout(new GridLayout());
         container.setLayoutData(GridDataFactory.fillDefaults().grab(true, false).create());
         ApidocsViewUtils.setInfoBackgroundColor(container);
         final Label l = new Label(container, SWT.NONE);
+        
         final String msg = format("Found %s examples for type '%s'. Search took %s.", searchResults.docs.totalHits,
                 Names.vm2srcSimpleTypeName(typeName), searchDuration);
-        l.setText(msg);        
+        l.setText(msg);
+       
         final TableViewer v = new TableViewer(container, SWT.VIRTUAL);
         ColumnViewerToolTipSupport.enableFor(v, ToolTip.RECREATE);
+        
         v.setLabelProvider(new LabelProvider(jdtResolver, searchterms, searchResults));
         v.setContentProvider(new ContentProvider(searchResults, jdtResolver));
         // v.setUseHashlookup(true);
@@ -84,13 +87,17 @@ public final class Renderer implements Runnable {
         // v.getTable().setLinesVisible(true);
         v.setItemCount(searchResults.scoreDocs().length);
         v.getControl().setLayoutData(GridDataFactory.fillDefaults().hint(300, 200).grab(true, false).create());
+        
         v.addDoubleClickListener(new IDoubleClickListener() {        
         
             @Override
-            public void doubleClick(final DoubleClickEvent event) {
+            public void doubleClick(final DoubleClickEvent event)
+            {
                 final Optional<Selection> opt = Selections.getFirstSelected(event.getSelection());
                 final ITextEditor editor;
-                if (opt.isPresent()) {
+                
+                if (opt.isPresent())
+                {
                     final Selection s = opt.get();
                     if (s.isError()) {
                         ErrorDialog.openError(event.getViewer().getControl().getShell(), "Index issue",
@@ -98,8 +105,10 @@ public final class Renderer implements Runnable {
                                 StatusUtil.newStatus("org.eclipse.recommenders", s.exception));
                         return;
                     }
+                    
                     final String handle = s.doc.get(Fields.JAVA_ELEMENT_HANDLE);
                     final IJavaElement create = JavaCore.create(handle);
+                    
                     try {
                         editor = (ITextEditor) JavaUI.openInEditor(create);
                         JavaUI.revealInEditor(editor, create);

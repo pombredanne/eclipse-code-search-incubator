@@ -24,7 +24,6 @@ import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
-import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.ExpressionStatement;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.ReturnStatement;
@@ -40,7 +39,6 @@ import org.eclipse.jdt.ui.text.IJavaColorConstants;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
-import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
@@ -60,6 +58,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 
+@SuppressWarnings("restriction")
 public class LabelProvider extends StyledCellLabelProvider {
 
     private final JavaElementLabelProvider jdtLabelProvider = new JavaElementLabelProvider();
@@ -76,9 +75,9 @@ public class LabelProvider extends StyledCellLabelProvider {
     /**
      * Finds all relevant statements and creates a *very* simple summary
      */
-    @SuppressWarnings("restriction")
     @Override
-    public void update(final ViewerCell cell) {
+    public void update(final ViewerCell cell)
+    {
         cell.setFont(JFaceResources.getTextFont());
         final Selection s = (Selection) cell.getElement();
         astMethod = s.method;
@@ -89,13 +88,16 @@ public class LabelProvider extends StyledCellLabelProvider {
             return;
         }
         jdtType = (IType) s.handle.getAncestor(IJavaElement.TYPE);
-        if (astMethod == ContentProvider.MDEMPTY && jdtType==null ) {
+        
+        if (astMethod == ContentProvider.MDEMPTY && jdtType==null )
+        {
             cell.setText("// failed to resolve method and class.");
             setCellToCommentStyle(cell);
             return;
         }
         // This is a node that doesn't have an enclosing method. Generate summary with class details
-        if(isEmpty(varname) && jdtType != null ){
+        if(isEmpty(varname) && jdtType != null )
+        {
             statements = Lists.newArrayList();
             //add statements of type declaration
             if(astMethod == ContentProvider.MDEMPTY || astMethod == null){
@@ -114,22 +116,26 @@ public class LabelProvider extends StyledCellLabelProvider {
                 statements.add(astMethod);
             }
             setCellTextLimited(cell);
+            
             return;
         }
-        if (!findStatements(varname)) {
+        if (!findStatements(varname))
+        {
             cell.setText("// No interesting statements found.\n// Either index is outdated or method is not actually using this variable?");
             setCellToCommentStyle(cell);
             super.update(cell);
+            
             return;
         }
         setCellText(cell);
     }
 
-    private void setCellTextLimited(ViewerCell cell) {
+    private void setCellTextLimited(ViewerCell cell)
+    {
         final StringBuilder sb = new StringBuilder();
-        final Selection s = (Selection) cell.getElement();
         final List<StyleRange> ranges = newArrayList();
-        for (final ASTNode n : statements) {
+        for (final ASTNode n : statements)
+        {
             if(n!=null)
              sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
         }
@@ -138,8 +144,8 @@ public class LabelProvider extends StyledCellLabelProvider {
         String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
         final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
 
-        for (final String term : searchterms) {
-
+        for (final String term : searchterms)
+        {
             int index = 0;
             while (true) {
                 index = indexOfIgnoreCase(summary, term, index);
@@ -156,7 +162,8 @@ public class LabelProvider extends StyledCellLabelProvider {
         
     }
 
-    private void setCellToCommentStyle(final ViewerCell cell) {
+    private void setCellToCommentStyle(final ViewerCell cell)
+    {
         final IColorManager colorManager = JavaUI.getColorManager();
         final Color color = colorManager.getColor(IJavaColorConstants.JAVA_MULTI_LINE_COMMENT);
         final StyleRange[] ranges = { new StyleRange(0, cell.getText().length(), color, null) };
@@ -164,7 +171,8 @@ public class LabelProvider extends StyledCellLabelProvider {
         
     }
 
-    private boolean findStatements(final String varname) {
+    private boolean findStatements(final String varname)
+    {
         statements = Lists.newArrayList();
 
         if (isEmpty(varname)) {
@@ -180,8 +188,8 @@ public class LabelProvider extends StyledCellLabelProvider {
                 return false;
             }
 
-            private void collectStatement(final SimpleName node) {
-
+            private void collectStatement(final SimpleName node)
+            {
                 for (ASTNode curr = node.getParent(); curr != null; curr = curr.getParent()) {
                     if (curr instanceof ExpressionStatement) {
                         statements.add(curr);
@@ -235,18 +243,21 @@ public class LabelProvider extends StyledCellLabelProvider {
         return !statements.isEmpty();
     }
 
-    private void setCellText(final ViewerCell cell){
+    private void setCellText(final ViewerCell cell)
+    {
         final StringBuilder sb = new StringBuilder();
+        @SuppressWarnings("unused")
         final Selection s = (Selection) cell.getElement();
         final List<StyleRange> ranges = newArrayList();
-        for (final ASTNode n : statements) {
-            // term matching in here:... waiting for contribution of
-            // Kristjian...
+        
+        for (final ASTNode n : statements)
+        {
             sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
         }
         final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
         
         String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
+        @SuppressWarnings("unused")
         IMethod method = ((Selection) cell.getElement()).element();
         String header = getHeader(cell.getElement());
        
@@ -254,7 +265,8 @@ public class LabelProvider extends StyledCellLabelProvider {
         summary = header+summary;
         final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
 
-        for (final String term : searchterms) {
+        for (final String term : searchterms)
+        {
 
             int index = header.length();
             while (true) {
@@ -272,7 +284,8 @@ public class LabelProvider extends StyledCellLabelProvider {
     }
 
     @Override
-    protected void measure(final Event event, final Object element) {
+    protected void measure(final Event event, final Object element)
+    {
         final TableItem item = (TableItem) event.item;
         final GC gc = event.gc;
         gc.setFont(item.getFont());
@@ -289,7 +302,8 @@ public class LabelProvider extends StyledCellLabelProvider {
     }
 
     @Override
-    public String getToolTipText(final Object element) {
+    public String getToolTipText(final Object element)
+    {
         if (element instanceof Selection) {
             final Selection s = (Selection) element;
             if (s.method != null) {
@@ -304,10 +318,12 @@ public class LabelProvider extends StyledCellLabelProvider {
                 return s.doc.toString();
             }
         }
+        
         return null;
     }
     
-    private String getHeader(final Object element){
+    private String getHeader(final Object element)
+    {
         if (element instanceof Selection) {
             final Selection s = (Selection) element;
             if (s.method != null) {
@@ -318,17 +334,19 @@ public class LabelProvider extends StyledCellLabelProvider {
                         : "") + "\n";
             } 
         }
+        
         return "";
     }
 
     @Override
-    public org.eclipse.swt.graphics.Image getToolTipImage(final Object object) {
+    public org.eclipse.swt.graphics.Image getToolTipImage(final Object object)
+    {
         if (object instanceof Selection) {
             final Selection s = (Selection) object;
             return jdtLabelProvider.getImage(s.element());
         }
+        
         return null;
-
     };
 
     @Override

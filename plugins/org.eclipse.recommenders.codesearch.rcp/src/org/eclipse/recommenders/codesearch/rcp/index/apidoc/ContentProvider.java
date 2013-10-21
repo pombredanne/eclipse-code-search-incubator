@@ -27,7 +27,6 @@ import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.dom.AST;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
-import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.ui.SharedASTProvider;
 import org.eclipse.jface.viewers.ILazyContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
@@ -47,18 +46,19 @@ final class ContentProvider implements ILazyContentProvider {
 
     private final ExecutorService s = new ThreadPoolExecutor(Runtime.getRuntime().availableProcessors(), Runtime
             .getRuntime().availableProcessors(), 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>(20),
-
-    new ThreadFactoryBuilder().setPriority(Thread.MIN_PRIORITY).build());
+            new ThreadFactoryBuilder().setPriority(Thread.MIN_PRIORITY).build());
+    
     public static MethodDeclaration MDEMPTY;
-    static {
+    private TableViewer viewer;
+    private final SearchResult searchResults;
+    
+    static 
+    {
         final AST ast = AST.newAST(AST.JLS4);
         MDEMPTY = ast.newMethodDeclaration();
         MDEMPTY.setName(ast.newSimpleName("not_found"));
         MDEMPTY.setBody(ast.newBlock());     
-    }
-
-    private TableViewer viewer;
-    private final SearchResult searchResults;
+    }    
 
     ContentProvider(final SearchResult searchResults, final JavaElementResolver jdtResolver) {
         this.searchResults = searchResults;
@@ -70,7 +70,8 @@ final class ContentProvider implements ILazyContentProvider {
     }
 
     @Override
-    public void updateElement(final int index) {
+    public void updateElement(final int index)
+    {
         try {
             s.submit(new Runnable() {
                 private IMethod jdtMethod;
@@ -82,15 +83,19 @@ final class ContentProvider implements ILazyContentProvider {
                 public void run() {
                     try {
                         final Document doc = searchResults.scoreDoc(index);
-                        if (!findHandle(doc)) {
+                        if (!findHandle(doc))
+                        {
                             final IllegalStateException e = new IllegalStateException("Could not find handle "
                                     + doc.get(Fields.JAVA_ELEMENT_HANDLE));
                             updateIndex(new Selection(e), index);
+                            
                             return;
                         }
                         // There can be a selection without an enclosing method. eg. annotation, extended types, etc.
-                        if (!findAstMethod() && !findJdtType()) {
+                        if (!findAstMethod() && !findJdtType())
+                        {
                             updateIndex(new Selection(element, MDEMPTY, "", doc), index);
+                            
                             return;
                         }
                         updateIndex(new Selection(element, astMethod, doc.get(Fields.VARIABLE_NAME), doc), index);
@@ -99,23 +104,30 @@ final class ContentProvider implements ILazyContentProvider {
                     }
                 }
 
-                private boolean findHandle(final Document doc) {
+                private boolean findHandle(final Document doc)
+                {
                     final String handle = doc.get(Fields.JAVA_ELEMENT_HANDLE);
                     element = JavaCore.create(handle);
+                    
                     return element != null;
                 }
 
-                private boolean findJdtMethod() {
+                private boolean findJdtMethod()
+                {
                     jdtMethod = (IMethod) element.getAncestor(IJavaElement.METHOD);
+                    
                     return jdtMethod != null;
                 }
                 
-                private boolean findJdtType(){
+                private boolean findJdtType()
+                {
                     jdtType = (IType) element.getAncestor(IJavaElement.TYPE);
+                    
                     return jdtType != null;
                 }
                 
-                private boolean findAstMethod() {
+                private boolean findAstMethod()
+                {
                     try {
                         if(!findJdtMethod()){
                             return false;
@@ -128,15 +140,16 @@ final class ContentProvider implements ILazyContentProvider {
                         if (ast == null) {
                             return false;
                         }
-
                         // caused NPEs:
                         // ASTNodeSearchUtil.getMethodDeclarationNode(jdtMethod,
                         // ast);
                         astMethod = ASTNodeUtils.find(ast, jdtMethod).orNull();
+                        
                     } catch (final Exception e) {
                         Logs.logError(e, CodesearchIndexPlugin.getDefault(), "failed to find declaring method %s",
                                 jdtMethod);
                     }
+                    
                     return astMethod != null;
                 }
             });
@@ -148,18 +161,18 @@ final class ContentProvider implements ILazyContentProvider {
         }
     }
 
-    private void updateIndex(final Selection s, final int index) {
+    private void updateIndex(final Selection s, final int index)
+    {
         Display.getDefault().asyncExec(new Runnable() {
-
-            @Override
-            public void run() {
-                final Table table = viewer.getTable();
-                if (table.isDisposed()) {
-                    return;
+                @Override
+                public void run() {
+                    final Table table = viewer.getTable();
+                    if (table.isDisposed()) {
+                        return;
+                    }
+                    viewer.replace(s, index);
                 }
-                viewer.replace(s, index);
-            }
-        });
+            });
     }
 
     @Override
