@@ -208,7 +208,7 @@ public class IndexUpdateService {
     }
     
     public void reindexWorkspace(){
-        if (PreferencePage.isActive() && backgroundIndexerActive) {
+        if (backgroundIndexerActive) {
 
             new IndexerJob("Code-search: Re-indexing workspace.", workspace.getProjects(), indexer,
                     (Workspace) workspace.getWorkspace());
