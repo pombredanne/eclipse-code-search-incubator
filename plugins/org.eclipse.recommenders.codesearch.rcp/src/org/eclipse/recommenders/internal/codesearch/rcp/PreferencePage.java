@@ -11,19 +11,24 @@
 
 package org.eclipse.recommenders.internal.codesearch.rcp;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.recommenders.codesearch.rcp.index.indexer.CodeIndexer;
+import org.eclipse.recommenders.injection.InjectionService;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 
 public class PreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
-
+    
     private static final String P_KEEP_IN_SYNC = "recommenders.codesearch.index.keep_in_sync";
 
     @Override
@@ -54,4 +59,29 @@ public class PreferencePage extends FieldEditorPreferencePage implements IWorkbe
         final boolean res = store.getBoolean(P_KEEP_IN_SYNC);
         return res;
     }
+
+    @Override
+    public void propertyChange(PropertyChangeEvent event) {       
+        super.propertyChange(event);
+        
+        if(event.getSource() instanceof BooleanFieldEditor && 
+                ((BooleanFieldEditor) event.getSource()).getPreferenceName().equals(P_KEEP_IN_SYNC)){
+            
+            if((Boolean) event.getNewValue()){
+
+              boolean confirmed = MessageDialog.openConfirm(Display.getCurrent().getActiveShell(), 
+                                    "Warning - Long running operation", 
+                                    "Note that building the initial index is a long running operation. "
+                                    + "Press OK to start indexing now.\nOtherwise it will be started on next restart."); 
+              IndexUpdateService service = InjectionService.getInstance().getInjector()
+                      .getInstance(IndexUpdateService.class);
+              
+              if(confirmed){
+                  service.reindexWorkspace();
+              }
+            }
+        }
+    }
+    
+    
 }

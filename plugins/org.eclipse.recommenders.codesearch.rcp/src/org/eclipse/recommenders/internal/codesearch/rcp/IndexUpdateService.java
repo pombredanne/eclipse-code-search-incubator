@@ -139,10 +139,11 @@ public class IndexUpdateService {
     };
 
     private final CodeIndexer indexer;
-
+    private final IWorkspaceRoot workspace;
     @Inject
     public IndexUpdateService(final CodeIndexer indexer, final IWorkspaceRoot workspace) {
         this.indexer = indexer;
+        this.workspace = workspace;
         if (PreferencePage.isActive() && backgroundIndexerActive) {
 
             new IndexerJob("Code-search: Re-indexing workspace.", workspace.getProjects(), indexer,
@@ -203,6 +204,14 @@ public class IndexUpdateService {
             }
         } catch (final IOException e) {
             Logs.logError(e, CodesearchIndexPlugin.getDefault(), "error during indexing");
+        }
+    }
+    
+    public void reindexWorkspace(){
+        if (PreferencePage.isActive() && backgroundIndexerActive) {
+
+            new IndexerJob("Code-search: Re-indexing workspace.", workspace.getProjects(), indexer,
+                    (Workspace) workspace.getWorkspace());
         }
     }
 
