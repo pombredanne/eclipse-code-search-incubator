@@ -53,10 +53,12 @@ public final class Renderer implements Runnable {
     private final String typeName;
     private final String searchDuration;
     private final List<String> searchterms;
+    private final String searchType;
 
-    public Renderer(final SearchResult searchResult, final Composite parent, final String typeName,
+    public Renderer(final SearchResult searchResult, final Composite parent, final String searchType, final String typeName,
             final String searchDuration, final JavaElementResolver jdtResolver, final List<String> searchterms) {
         searchResults = searchResult;
+        this.searchType = searchType;
         this.parent = parent;
         this.typeName = typeName;
         this.searchDuration = searchDuration;
@@ -73,14 +75,14 @@ public final class Renderer implements Runnable {
         ApidocsViewUtils.setInfoBackgroundColor(container);
         final Label l = new Label(container, SWT.NONE);
         
-        final String msg = format("Found %s examples for type '%s'. Search took %s.", searchResults.docs.totalHits,
+        final String msg = format("Found %s examples for %s search of '%s'. Search took %s.", searchResults.docs.totalHits, searchType,
                 Names.vm2srcSimpleTypeName(typeName), searchDuration);
         l.setText(msg);
        
         final TableViewer v = new TableViewer(container, SWT.VIRTUAL);
         ColumnViewerToolTipSupport.enableFor(v, ToolTip.RECREATE);
         
-        v.setLabelProvider(new LabelProvider(jdtResolver, searchterms, searchResults));
+        v.setLabelProvider(new LabelProvider(jdtResolver, searchterms, searchType, searchResults));
         v.setContentProvider(new ContentProvider(searchResults, jdtResolver));
         // v.setUseHashlookup(true);
         v.setInput(searchResults);

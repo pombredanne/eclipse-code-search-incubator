@@ -30,6 +30,7 @@ import org.apache.lucene.search.TermQuery;
 import org.eclipse.jdt.core.IField;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.ILocalVariable;
+import org.eclipse.jdt.core.IMember;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
 import org.eclipse.jdt.core.JavaModelException;
@@ -38,9 +39,14 @@ import org.eclipse.jdt.core.dom.CastExpression;
 import org.eclipse.jdt.core.dom.ClassInstanceCreation;
 import org.eclipse.jdt.core.dom.Expression;
 import org.eclipse.jdt.core.dom.IMethodBinding;
+import org.eclipse.jdt.core.dom.MarkerAnnotation;
 import org.eclipse.jdt.core.dom.MethodDeclaration;
 import org.eclipse.jdt.core.dom.MethodInvocation;
 import org.eclipse.jdt.core.dom.SimpleName;
+import org.eclipse.jdt.core.dom.SimpleType;
+import org.eclipse.jdt.core.dom.SingleMemberAnnotation;
+import org.eclipse.jdt.core.dom.SingleVariableDeclaration;
+import org.eclipse.jdt.core.dom.StructuralPropertyDescriptor;
 import org.eclipse.jdt.core.dom.SuperMethodInvocation;
 import org.eclipse.jdt.core.dom.TypeDeclaration;
 import org.eclipse.jdt.core.dom.VariableDeclarationFragment;
@@ -52,6 +58,7 @@ import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.apidocs.rcp.JavaSelectionSubscriber;
 import org.eclipse.recommenders.rcp.JavaElementSelectionEvent;
+import org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation;
 import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.JdtUtils;
@@ -64,6 +71,16 @@ import com.google.common.collect.Lists;
 @SuppressWarnings("restriction")
 public class LocalExamplesProvider extends ApidocProvider {
 
+    public static final String VAR_USAGE_SEARCH = "variable usage";
+    public static final String METHOD_INVOCATION_SEARCH = "similar method calls";
+    public static final String USED_ANNOTATION_SEARCH = "annotation usage";
+    public static final String EXTENDED_TYPE_SEARCH = "extended type";
+    public static final String IMPLEENTED_TYPE_SEARCH = "implemented type";
+    public static final String RETURN_TYPE_SEARCH = "return type";
+    public static final String CLASS_FIELD_SEARCH = "class variable";
+    public static final String METHOD_PARAMETER_SEARCH = "method parameter";
+    public static final String CHECKED_EXCEPTION_SEARCH = "checked exception";
+    
     private final JavaElementResolver jdtResolver;
     private final CodeSearcher searcher;
     private Stopwatch watch;
@@ -71,10 +88,12 @@ public class LocalExamplesProvider extends ApidocProvider {
 
     private MethodDeclaration enclosingMethod;
     private TypeDeclaration enclosingType;
-    private SimpleName varNode;
+    private SimpleName simpleNode;
     private String varType;
-    private int selectedNodeType;
-    private int parentNodeType;
+    private ASTNode selectedNode;
+    private ASTNode parentNode;
+    private String searchType;
+
 
     List<String> searchterms;
     private IType jdtVarType;
@@ -104,10 +123,10 @@ public class LocalExamplesProvider extends ApidocProvider {
         }
 
         final BooleanQuery query = createQuery();
-        final SearchResult searchResult = searcher.lenientSearch(query, 5000);
+        final SearchResult searchResult = searcher.lenientSearch(query, 1000);
         stopMeasurement();
 
-        runSyncInUiThread(new Renderer(searchResult, parent, varType, watch.toString(), jdtResolver, searchterms));
+        runSyncInUiThread(new Renderer(searchResult, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
         
     }
 
@@ -127,10 +146,10 @@ public class LocalExamplesProvider extends ApidocProvider {
         }
 
         final BooleanQuery query = createQuery();
-        final SearchResult searchResults = searcher.lenientSearch(query, 5000);
+        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
         stopMeasurement();
 
-        runSyncInUiThread(new Renderer(searchResults, parent, varType, watch.toString(), jdtResolver, searchterms));
+        runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
         
     }
     
@@ -150,7 +169,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         varType = jdtResolver.toRecType(type).getIdentifier();
         BooleanQuery query = null;
         
-        switch (selectedNodeType) {
+        switch (selectedNode.getNodeType()) {
             case ASTNode.MARKER_ANNOTATION:
             case ASTNode.SINGLE_MEMBER_ANNOTATION:
             case ASTNode.ANNOTATION_TYPE_MEMBER_DECLARATION:
@@ -158,36 +177,51 @@ public class LocalExamplesProvider extends ApidocProvider {
                 query = createAnnotationQuery();
                 break;
             case ASTNode.SIMPLE_TYPE:
+            case ASTNode.SIMPLE_NAME://Checked exceptions
                 query = createTypeQuery();
-                break;
+                break;           
             default:
                 break;
         }
-        final SearchResult searchResults = searcher.lenientSearch(query, 5000);
+        if(query == null){
+            return;
+        }
+        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
         stopMeasurement();
         
-        runSyncInUiThread(new Renderer(searchResults, parent, varType, watch.toString(), jdtResolver, searchterms));
+        runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
         
     }
 
+    // Catch all
     @JavaSelectionSubscriber
     public void onElementSelection(final IJavaElement element,
             final JavaElementSelectionEvent event, final Composite parent)
             throws IOException, JavaModelException {
         clear();
         this.event = event;
+        BooleanQuery query = null;
         startMeasurement();
-        findAstNodes();
-        switch (event.getSelectedNode().get().getNodeType()) {
-            case ASTNode.NORMAL_ANNOTATION:
-                //query = createAnnotationQuery();
+        
+        if (!findAstNodes()) {
+            return;
+        }
+        switch (selectedNode.getNodeType()) {
+            case ASTNode.METHOD_INVOCATION:
+                varType = jdtResolver.toRecMethod((IMethod) element).get().getIdentifier();
+                query = createMethodQuery();
                 break;
 
         default:
             break;
         }
-        
+        if(query == null){
+            return;
+        }
+        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
         stopMeasurement();
+        
+        runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
     }
 
     private boolean findAstNodes()
@@ -199,15 +233,20 @@ public class LocalExamplesProvider extends ApidocProvider {
         
         final ASTNode node = astNode.get();
         if (node.getNodeType() == ASTNode.SIMPLE_NAME) {
-            varNode = (SimpleName) node;
+            simpleNode = (SimpleName) node;
         }
         
-        // Get actual selected node type from SimpleName node
-        selectedNodeType = node.getParent().getNodeType();
-        // Get type of the parent node of currently selected node
-        parentNodeType = node.getParent().getParent().getNodeType();
+        if(isNameProperty(simpleNode)){
+            selectedNode = node.getParent();
+        }
+        else
+        {
+            selectedNode = node;            
+        }
 
-        for (ASTNode parent = varNode; parent != null; parent = parent.getParent())
+        parentNode = selectedNode.getParent();
+
+        for (ASTNode parent = simpleNode; parent != null; parent = parent.getParent())
         {
             if (parent instanceof MethodDeclaration) {
                 enclosingMethod = (MethodDeclaration) parent;
@@ -217,7 +256,7 @@ public class LocalExamplesProvider extends ApidocProvider {
             }
         }
         
-        return varNode != null && ((enclosingMethod != null) || (enclosingType != null));
+        return simpleNode != null && ((enclosingMethod != null) || (enclosingType != null));
         
     }
 
@@ -240,14 +279,27 @@ public class LocalExamplesProvider extends ApidocProvider {
         
     }
     
+    private BooleanQuery createMethodQuery() {
+        final BooleanQuery query = new BooleanQuery();
+        searchterms = new ArrayList<String>();
+        Term term;
+        searchType = METHOD_INVOCATION_SEARCH;
+        term = prepareSearchTerm(Fields.USED_METHODS, BindingHelper.getIdentifier((MethodInvocation) selectedNode).get());
+        query.add(new TermQuery(term), Occur.MUST);
+        searchterms.add(simpleNode.getIdentifier());
+        
+        return query;
+    }
+    
     private BooleanQuery createAnnotationQuery()
     {
         final BooleanQuery query = new BooleanQuery();
         searchterms = new ArrayList<String>();
         Term term;
-        term = prepareSearchTerm(Fields.ANNOTATIONS, BindingHelper.getTypeIdentifier(varNode).get());
+        searchType = USED_ANNOTATION_SEARCH;
+        term = prepareSearchTerm(Fields.ANNOTATIONS, BindingHelper.getTypeIdentifier(simpleNode).get());
         query.add(new TermQuery(term), Occur.MUST);
-        searchterms.add(varNode.getIdentifier());
+        searchterms.add(simpleNode.getIdentifier());
         
         return query;
     }
@@ -256,16 +308,62 @@ public class LocalExamplesProvider extends ApidocProvider {
     {        
         final BooleanQuery query = new BooleanQuery();
         searchterms = new ArrayList<String>();
-        Term term;
         
-        switch(parentNodeType)
-        {
-            // Check whether this is an extended type
+        StructuralPropertyDescriptor location = selectedNode.getLocationInParent();
+        switch(parentNode.getNodeType())
+        {            
             case ASTNode.TYPE_DECLARATION:
-                term = prepareSearchTerm(Fields.ALL_EXTENDED_TYPES, BindingHelper.getTypeIdentifier(varNode).get());
-                query.add(new TermQuery(term), Occur.MUST);
-                searchterms.add(varNode.getIdentifier());
+                if(location == TypeDeclaration.SUPERCLASS_TYPE_PROPERTY)
+                {
+                    searchType = EXTENDED_TYPE_SEARCH;
+                    Term term = prepareSearchTerm(Fields.ALL_EXTENDED_TYPES, BindingHelper.getTypeIdentifier(simpleNode).get());
+                    query.add(new TermQuery(term), Occur.MUST);
+                    searchterms.add(simpleNode.getIdentifier());
+                }
+                else if(location == TypeDeclaration.SUPER_INTERFACE_TYPES_PROPERTY)
+                {
+                    searchType = IMPLEENTED_TYPE_SEARCH;
+                    Term term = prepareSearchTerm(Fields.ALL_IMPLEMENTED_TYPES, BindingHelper.getTypeIdentifier(simpleNode).get());
+                    query.add(new TermQuery(term), Occur.MUST);
+                    searchterms.add(simpleNode.getIdentifier());
+                }
                 break;
+            case ASTNode.METHOD_DECLARATION:                
+               if(location == MethodDeclaration.THROWN_EXCEPTIONS_PROPERTY)
+               {
+                   searchType = CHECKED_EXCEPTION_SEARCH;
+                   Term term = prepareSearchTerm(Fields.CHECKED_EXCEPTIONS, BindingHelper.getTypeIdentifier(simpleNode).get());
+                   query.add(new TermQuery(term), Occur.MUST);
+                   searchterms.add(simpleNode.getIdentifier());                   
+               }
+               else if(location == MethodDeclaration.RETURN_TYPE2_PROPERTY || location == MethodDeclaration.RETURN_TYPE_PROPERTY)
+               {
+                   searchType = RETURN_TYPE_SEARCH;
+                   Term term = prepareSearchTerm(Fields.RETURN_TYPE, BindingHelper.getTypeIdentifier(simpleNode).get());
+                   query.add(new TermQuery(term), Occur.MUST);
+                   searchterms.add(simpleNode.getIdentifier());    
+               }
+               break;
+            case ASTNode.SINGLE_VARIABLE_DECLARATION:
+                // Method Parameter Declaration
+                if (parentNode.getLocationInParent() == MethodDeclaration.PARAMETERS_PROPERTY) {
+                    searchType = METHOD_PARAMETER_SEARCH;
+                    Term term = prepareSearchTerm(
+                            Fields.PARAMETER_TYPES, BindingHelper
+                                    .getTypeIdentifier(simpleNode).get());
+                    query.add(new TermQuery(term), Occur.MUST);
+                    searchterms.add(simpleNode.getIdentifier());
+                }
+            case ASTNode.FIELD_DECLARATION:
+                if (parentNode.getLocationInParent() == TypeDeclaration.BODY_DECLARATIONS_PROPERTY) {
+                    searchType = CLASS_FIELD_SEARCH;
+                    Term term = prepareSearchTerm(
+                            Fields.FIELD_TYPE, BindingHelper
+                                    .getTypeIdentifier(simpleNode).get());
+                    query.add(new TermQuery(term), Occur.MUST);
+                    searchterms.add(simpleNode.getIdentifier());
+                }
+
         }
         
         return query;
@@ -274,16 +372,16 @@ public class LocalExamplesProvider extends ApidocProvider {
     private BooleanQuery createQuery()
     {
         // TODO: cleanup needed
-
+        searchType = VAR_USAGE_SEARCH;
         final BooleanQuery query = new BooleanQuery();
         final Term typeTerm = prepareSearchTerm(Fields.VARIABLE_TYPE, varType);
         final TermQuery typeQuery = new TermQuery(typeTerm);
         query.add(typeQuery, Occur.MUST);
         searchterms = Lists.newArrayList();
-        searchterms.add(varNode.getIdentifier());
+        searchterms.add(simpleNode.getIdentifier());
         searchterms.add(jdtVarType.getElementName());
 
-        for (final SimpleName use : LinkedNodeFinder.findByNode(enclosingMethod, varNode)) {
+        for (final SimpleName use : LinkedNodeFinder.findByNode(enclosingMethod, simpleNode)) {
 
             final ASTNode astParent = use.getParent();
             Term term = null;
@@ -422,16 +520,21 @@ public class LocalExamplesProvider extends ApidocProvider {
     private void stopMeasurement() {
         watch.stop();
     }
+    private boolean isNameProperty(SimpleName node){
+        StructuralPropertyDescriptor loc = node.getLocationInParent();
+        return node.isDeclaration() || (loc == SimpleType.NAME_PROPERTY) || (loc == MarkerAnnotation.TYPE_NAME_PROPERTY)
+                || (loc == SingleMemberAnnotation.TYPE_NAME_PROPERTY) || (loc == MethodInvocation.NAME_PROPERTY);
+    }
 
     private void clear() {
         event = null;
         enclosingMethod = null;
         enclosingType = null;
-        varNode = null;
+        simpleNode = null;
         varType = null;
         searchterms = null;
         jdtVarType = null;
-        selectedNodeType=0;
-        parentNodeType=0;
+        selectedNode=null;
+        selectedNode=null;
     }
 }

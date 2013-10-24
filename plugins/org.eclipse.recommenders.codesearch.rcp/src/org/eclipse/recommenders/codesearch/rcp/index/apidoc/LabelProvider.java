@@ -21,6 +21,7 @@ import java.util.List;
 import org.eclipse.jdt.core.IJavaElement;
 import org.eclipse.jdt.core.IMethod;
 import org.eclipse.jdt.core.IType;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.core.dom.ASTNode;
 import org.eclipse.jdt.core.dom.ASTVisitor;
@@ -39,6 +40,7 @@ import org.eclipse.jdt.ui.text.IJavaColorConstants;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
+import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
@@ -66,10 +68,12 @@ public class LabelProvider extends StyledCellLabelProvider {
     private IType jdtType;
     private List<ASTNode> statements;
     private final List<String> searchterms;
+    String searchType;
 
     public LabelProvider(final JavaElementResolver jdtCache, final List<String> searchterms,
-            final SearchResult searchResults) {
+            String searchType, final SearchResult searchResults) {
         this.searchterms = searchterms;
+        this.searchType = searchType;
     }
 
     /**
@@ -85,41 +89,42 @@ public class LabelProvider extends StyledCellLabelProvider {
         
         if (s.isError()) {
             cell.setText(s.exception.getMessage());
+            super.update(cell);
             return;
         }
-        jdtType = (IType) s.handle.getAncestor(IJavaElement.TYPE);
+        //jdtType = (IType) JavaCore.create(s.doc.get(Fields.JAVA_ELEMENT_HANDLE)).getAncestor(IJavaElement.TYPE);
         
-        if (astMethod == ContentProvider.MDEMPTY && jdtType==null )
+        if ((astMethod == ContentProvider.EMPTY || astMethod == null) && jdtType==null )
         {
             cell.setText("// failed to resolve method and class.");
             setCellToCommentStyle(cell);
+            super.update(cell);
             return;
         }
-        // This is a node that doesn't have an enclosing method. Generate summary with class details
-        if(isEmpty(varname) && jdtType != null )
+        
+        // This is a case that doesn't have an enclosing method. Generate summary only with class details
+        if(!hasEnclosingMethod())
         {
-            statements = Lists.newArrayList();
-            //add statements of type declaration
-            if(astMethod == ContentProvider.MDEMPTY || astMethod == null){
-                
-                TypeDeclaration td;
-                try {
-                    td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
-                    statements.add(td);
-                } catch (JavaModelException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+            TypeDeclaration td;
+            try {
+                td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
+                if(!findTypeDeclarationStatements(td))
+                {
+                    cell.setText("// failed to find statements from class.");
+                    setCellToCommentStyle(cell);
+                    super.update(cell);
+                    return;
                 }
                 
-            }
-            else{
-                statements.add(astMethod);
-            }
-            setCellTextLimited(cell);
-            
-            return;
+            } catch (JavaModelException e) {
+                cell.setText("// failed to resolve class.");
+                setCellToCommentStyle(cell);
+                super.update(cell);
+                return;
+            }      
         }
-        if (!findStatements(varname))
+
+        if (!findVarUsageStatements(varname))
         {
             cell.setText("// No interesting statements found.\n// Either index is outdated or method is not actually using this variable?");
             setCellToCommentStyle(cell);
@@ -128,38 +133,7 @@ public class LabelProvider extends StyledCellLabelProvider {
             return;
         }
         setCellText(cell);
-    }
-
-    private void setCellTextLimited(ViewerCell cell)
-    {
-        final StringBuilder sb = new StringBuilder();
-        final List<StyleRange> ranges = newArrayList();
-        for (final ASTNode n : statements)
-        {
-            if(n!=null)
-             sb.append(n.toString()).append(IOUtils.LINE_SEPARATOR);
-        }
-        final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
-        
-        String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
-        final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
-
-        for (final String term : searchterms)
-        {
-            int index = 0;
-            while (true) {
-                index = indexOfIgnoreCase(summary, term, index);
-                if (index == -1) {
-                    break;
-                }
-                ranges.add(new StyleRange(index, term.length(), null, color));
-                index += term.length();
-            }
-        }
-        cell.setFont(JFaceResources.getTextFont());
-        cell.setStyleRanges(ranges.toArray(new StyleRange[0]));
-        cell.setText(summary);
-        
+        super.update(cell);
     }
 
     private void setCellToCommentStyle(final ViewerCell cell)
@@ -170,8 +144,19 @@ public class LabelProvider extends StyledCellLabelProvider {
         cell.setStyleRanges(ranges);
         
     }
-
-    private boolean findStatements(final String varname)
+    private boolean findTypeDeclarationStatements(TypeDeclaration td){
+        statements = Lists.newArrayList();
+        statements.add(ContentProvider.EMPTY);
+        return true;
+    }
+    private boolean hasEnclosingMethod(){
+      return !((searchType == LocalExamplesProvider.CLASS_FIELD_SEARCH) 
+                || (searchType == LocalExamplesProvider.EXTENDED_TYPE_SEARCH)
+                || (searchType == LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH)
+                //this is a Class annotation
+                || (searchType == LocalExamplesProvider.USED_ANNOTATION_SEARCH && astMethod == ContentProvider.EMPTY));
+    }
+    private boolean findVarUsageStatements(final String varname)
     {
         statements = Lists.newArrayList();
 
@@ -246,8 +231,6 @@ public class LabelProvider extends StyledCellLabelProvider {
     private void setCellText(final ViewerCell cell)
     {
         final StringBuilder sb = new StringBuilder();
-        @SuppressWarnings("unused")
-        final Selection s = (Selection) cell.getElement();
         final List<StyleRange> ranges = newArrayList();
         
         for (final ASTNode n : statements)
@@ -257,8 +240,6 @@ public class LabelProvider extends StyledCellLabelProvider {
         final String[] split = split(sb.toString(), IOUtils.LINE_SEPARATOR);
         
         String summary = join(subarray(split, 0, 3), IOUtils.LINE_SEPARATOR);
-        @SuppressWarnings("unused")
-        IMethod method = ((Selection) cell.getElement()).element();
         String header = getHeader(cell.getElement());
        
         ranges.add(new StyleRange(0, header.length(), Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY), null));
@@ -326,6 +307,10 @@ public class LabelProvider extends StyledCellLabelProvider {
     {
         if (element instanceof Selection) {
             final Selection s = (Selection) element;
+            if( !hasEnclosingMethod() ){
+                
+                 
+            }
             if (s.method != null) {
                 final Optional<TypeDeclaration> enclosingType = ASTNodeUtils.getClosestParent(s.method,
                         TypeDeclaration.class);
