@@ -92,7 +92,7 @@ public class LabelProvider extends StyledCellLabelProvider {
             super.update(cell);
             return;
         }
-        //jdtType = (IType) JavaCore.create(s.doc.get(Fields.JAVA_ELEMENT_HANDLE)).getAncestor(IJavaElement.TYPE);
+        jdtType = (IType) JavaCore.create(s.doc.get(Fields.JAVA_ELEMENT_HANDLE)).getAncestor(IJavaElement.TYPE);
         
         if ((astMethod == ContentProvider.EMPTY || astMethod == null) && jdtType==null )
         {
@@ -103,25 +103,38 @@ public class LabelProvider extends StyledCellLabelProvider {
         }
         
         // This is a case that doesn't have an enclosing method. Generate summary only with class details
-        if(!hasEnclosingMethod())
+        if(!hasEnclosingMethod() || ((astMethod == ContentProvider.EMPTY || astMethod == null) && jdtType!=null ) )
         {
             TypeDeclaration td;
             try {
-                td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
-                if(!findTypeDeclarationStatements(td))
-                {
+                try {
+                    td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
+                
+                    if(!findTypeDeclarationStatements(td))
+                    {
+                        cell.setText("// failed to find statements from class.");
+                        setCellToCommentStyle(cell);
+                        super.update(cell);
+                        return;
+                    }
+                } catch (NullPointerException e) {
+                    
                     cell.setText("// failed to find statements from class.");
                     setCellToCommentStyle(cell);
                     super.update(cell);
                     return;
                 }
                 
+                
             } catch (JavaModelException e) {
                 cell.setText("// failed to resolve class.");
                 setCellToCommentStyle(cell);
                 super.update(cell);
                 return;
-            }      
+            }
+            setCellText(cell);
+            super.update(cell);
+            return;
         }
 
         if (!findVarUsageStatements(varname))
@@ -146,15 +159,24 @@ public class LabelProvider extends StyledCellLabelProvider {
     }
     private boolean findTypeDeclarationStatements(TypeDeclaration td){
         statements = Lists.newArrayList();
-        statements.add(ContentProvider.EMPTY);
+        td.accept(new ASTVisitor() {
+
+            @Override
+            public boolean visit(TypeDeclaration node) {
+               
+                statements.add(node);
+                return super.visit(node);
+            }
+            
+        });
         return true;
     }
     private boolean hasEnclosingMethod(){
-      return !((searchType == LocalExamplesProvider.CLASS_FIELD_SEARCH) 
-                || (searchType == LocalExamplesProvider.EXTENDED_TYPE_SEARCH)
-                || (searchType == LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH)
+      return !((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
+                || (searchType.equals(LocalExamplesProvider.EXTENDED_TYPE_SEARCH))
+                || (searchType.equals(LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH))
                 //this is a Class annotation
-                || (searchType == LocalExamplesProvider.USED_ANNOTATION_SEARCH && astMethod == ContentProvider.EMPTY));
+                || (searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY));
     }
     private boolean findVarUsageStatements(final String varname)
     {
@@ -172,6 +194,19 @@ public class LabelProvider extends StyledCellLabelProvider {
                 }
                 return false;
             }
+            
+
+            @Override
+            public boolean visit(MethodDeclaration node) {
+                
+                if(searchType.equals(LocalExamplesProvider.METHOD_PARAMETER_SEARCH)||
+                        searchType.equals(LocalExamplesProvider.CHECKED_EXCEPTION_SEARCH)){
+                    
+                    statements.add(node);
+                }
+                return super.visit(node);
+            }
+
 
             private void collectStatement(final SimpleName node)
             {
@@ -307,16 +342,18 @@ public class LabelProvider extends StyledCellLabelProvider {
     {
         if (element instanceof Selection) {
             final Selection s = (Selection) element;
-            if( !hasEnclosingMethod() ){
-                
-                 
-            }
             if (s.method != null) {
                 final Optional<TypeDeclaration> enclosingType = ASTNodeUtils.getClosestParent(s.method,
                         TypeDeclaration.class);
-
-                return (enclosingType.isPresent() ? "class " + enclosingType.get().resolveBinding().getQualifiedName()+" | method "+s.element().getElementName()
-                        : "") + "\n";
+                String header ="";
+                
+                try {
+                    header = (enclosingType.isPresent() ? "class " + enclosingType.get().resolveBinding().getQualifiedName()+" | method "+s.element().getElementName()
+                            : "") + "\n";
+                } catch (Exception e) {
+                   header = "Failed to determine package info.";
+                }
+                return header;
             } 
         }
         

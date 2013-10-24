@@ -12,6 +12,7 @@
 
 package org.eclipse.recommenders.codesearch.rcp.index.apidoc;
 
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
@@ -57,9 +58,13 @@ final class ContentProvider implements ILazyContentProvider {
 
     private TableViewer viewer;
     private final SearchResult searchResults;
+    private final String searchType;
+    final String searchVar;
 
-    ContentProvider(final SearchResult searchResults, final JavaElementResolver jdtResolver) {
+    ContentProvider(final SearchResult searchResults, final String typeName, final String searchType, final JavaElementResolver jdtResolver) {
         this.searchResults = searchResults;
+        this.searchType = searchType;
+        this.searchVar = typeName;
     }
 
     @Override
@@ -85,6 +90,10 @@ final class ContentProvider implements ILazyContentProvider {
                             updateIndex(new Selection(e), index);
                             return;
                         }
+                        if(!hasEnclosingMethod())
+                        {
+                            
+                        }
                         if (!findJdtMethod()) {
                             updateIndex(new Selection(EMPTY, "", doc), index);
                             return;
@@ -93,7 +102,15 @@ final class ContentProvider implements ILazyContentProvider {
                             updateIndex(new Selection(EMPTY, "", doc), index);
                             return;
                         }
-                        updateIndex(new Selection(astMethod, doc.get(Fields.VARIABLE_NAME), doc), index);
+                        if(searchType.equals(LocalExamplesProvider.VAR_USAGE_SEARCH))
+                        {
+                            updateIndex(new Selection(astMethod, doc.get(Fields.VARIABLE_NAME), doc), index);
+                        }
+                        else
+                        {String s = searchVar;
+                            updateIndex(new Selection(astMethod, searchVar, doc), index);
+                        }
+                        
                     } catch (final Exception e) {
                         updateIndex(new Selection(e), index);
                     }
@@ -125,13 +142,22 @@ final class ContentProvider implements ILazyContentProvider {
                         // ASTNodeSearchUtil.getMethodDeclarationNode(jdtMethod,
                         // ast);
                         astMethod = ASTNodeUtils.find(ast, jdtMethod).orNull();
+                        String ss = "";
                     } catch (final Exception e) {
                         Logs.logError(e, CodesearchIndexPlugin.getDefault(), "failed to find declaring method %s",
                                 jdtMethod);
                     }
                     return astMethod != null;
                 }
+                private boolean hasEnclosingMethod(){
+                    return !((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
+                              || (searchType.equals(LocalExamplesProvider.EXTENDED_TYPE_SEARCH))
+                              || (searchType.equals(LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH))
+                              //this is a Class annotation
+                              || (searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY));
+                  }
             });
+            
         } catch (final RejectedExecutionException e) {
             updateIndex(new Selection(new RuntimeException(
                     "Too many rendering requests at once. Select this item again to refresh.")), index);
@@ -139,6 +165,8 @@ final class ContentProvider implements ILazyContentProvider {
             // to prevent ui freezes we ignore too many requests...
         }
     }
+    
+
 
     private void updateIndex(final Selection s, final int index) {
         Display.getDefault().asyncExec(new Runnable() {

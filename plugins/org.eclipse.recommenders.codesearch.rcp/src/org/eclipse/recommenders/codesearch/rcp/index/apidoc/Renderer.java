@@ -83,7 +83,7 @@ public final class Renderer implements Runnable {
         ColumnViewerToolTipSupport.enableFor(v, ToolTip.RECREATE);
         
         v.setLabelProvider(new LabelProvider(jdtResolver, searchterms, searchType, searchResults));
-        v.setContentProvider(new ContentProvider(searchResults, jdtResolver));
+        v.setContentProvider(new ContentProvider(searchResults,  Names.vm2srcSimpleTypeName(typeName), searchType, jdtResolver));
         // v.setUseHashlookup(true);
         v.setInput(searchResults);
         // v.getTable().setLinesVisible(true);

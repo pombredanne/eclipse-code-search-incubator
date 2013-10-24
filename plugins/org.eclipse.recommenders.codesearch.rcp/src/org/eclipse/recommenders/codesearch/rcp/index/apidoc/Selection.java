@@ -44,7 +44,7 @@ public class Selection {
     }
 
     IMethod element() {
-        if(method != ContentProvider.EMPTY)
+        if(method != ContentProvider.EMPTY || method!=null)
             return (IMethod) method.resolveBinding().getJavaElement();
         return null;
     }    
