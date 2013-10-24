@@ -65,6 +65,7 @@ public class LabelProvider extends StyledCellLabelProvider {
 
     private final JavaElementLabelProvider jdtLabelProvider = new JavaElementLabelProvider();
     private MethodDeclaration astMethod;
+    private TypeDeclaration astType;
     private IType jdtType;
     private List<ASTNode> statements;
     private final List<String> searchterms;
@@ -94,7 +95,7 @@ public class LabelProvider extends StyledCellLabelProvider {
         }
         jdtType = (IType) JavaCore.create(s.doc.get(Fields.JAVA_ELEMENT_HANDLE)).getAncestor(IJavaElement.TYPE);
         
-        if ((astMethod == ContentProvider.EMPTY || astMethod == null) && jdtType==null )
+        if (!findAstType() && !s.hasMethod() )
         {
             cell.setText("// failed to resolve method and class.");
             setCellToCommentStyle(cell);
@@ -103,35 +104,16 @@ public class LabelProvider extends StyledCellLabelProvider {
         }
         
         // This is a case that doesn't have an enclosing method. Generate summary only with class details
-        if(!hasEnclosingMethod() || ((astMethod == ContentProvider.EMPTY || astMethod == null) && jdtType!=null ) )
+        if((!hasEnclosingMethod() || !s.hasMethod()) && astType != null ) 
         {
-            TypeDeclaration td;
-            try {
-                try {
-                    td = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
-                
-                    if(!findTypeDeclarationStatements(td))
-                    {
-                        cell.setText("// failed to find statements from class.");
-                        setCellToCommentStyle(cell);
-                        super.update(cell);
-                        return;
-                    }
-                } catch (NullPointerException e) {
-                    
-                    cell.setText("// failed to find statements from class.");
-                    setCellToCommentStyle(cell);
-                    super.update(cell);
-                    return;
-                }
-                
-                
-            } catch (JavaModelException e) {
-                cell.setText("// failed to resolve class.");
+            if(!findTypeDeclarationStatements(astType))
+            {
+                cell.setText("// failed to find statements from class.");
                 setCellToCommentStyle(cell);
                 super.update(cell);
                 return;
             }
+      
             setCellText(cell);
             super.update(cell);
             return;
@@ -139,14 +121,32 @@ public class LabelProvider extends StyledCellLabelProvider {
 
         if (!findVarUsageStatements(varname))
         {
+            if(searchType.equals(LocalExamplesProvider.METHOD_INVOCATION_SEARCH) && astMethod == ContentProvider.EMPTY)
+            {
+                findTypeDeclarationStatements(astType);
+                setCellText(cell);
+                super.update(cell);
+                return;
+            }
             cell.setText("// No interesting statements found.\n// Either index is outdated or method is not actually using this variable?");
             setCellToCommentStyle(cell);
             super.update(cell);
             
             return;
         }
+        
         setCellText(cell);
         super.update(cell);
+    }
+    private boolean findAstType(){
+        try {
+            astType = ASTNodeSearchUtil.getTypeDeclarationNode(jdtType, SharedASTProvider.getAST(jdtType.getTypeRoot(), SharedASTProvider.WAIT_YES, null));
+        } catch (JavaModelException e) {
+           
+        }
+        catch (NullPointerException e) {
+        }
+        return astType!=null;
     }
 
     private void setCellToCommentStyle(final ViewerCell cell)
@@ -172,11 +172,14 @@ public class LabelProvider extends StyledCellLabelProvider {
         return true;
     }
     private boolean hasEnclosingMethod(){
-      return !((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
+      boolean ss= !((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
                 || (searchType.equals(LocalExamplesProvider.EXTENDED_TYPE_SEARCH))
                 || (searchType.equals(LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH))
                 //this is a Class annotation
-                || (searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY));
+                || ((searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY))
+                
+              );
+      return ss;
     }
     private boolean findVarUsageStatements(final String varname)
     {
@@ -198,9 +201,13 @@ public class LabelProvider extends StyledCellLabelProvider {
 
             @Override
             public boolean visit(MethodDeclaration node) {
-                
+                // Todo : improve summaries for these searches. Currently it displays full method declaration as summary
                 if(searchType.equals(LocalExamplesProvider.METHOD_PARAMETER_SEARCH)||
-                        searchType.equals(LocalExamplesProvider.CHECKED_EXCEPTION_SEARCH)){
+                        searchType.equals(LocalExamplesProvider.CHECKED_EXCEPTION_SEARCH)||
+                        searchType.equals(LocalExamplesProvider.METHOD_INVOCATION_SEARCH)||
+                        searchType.equals(LocalExamplesProvider.RETURN_TYPE_SEARCH)||
+                        (searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH))
+                        ){
                     
                     statements.add(node);
                 }

@@ -150,11 +150,13 @@ final class ContentProvider implements ILazyContentProvider {
                     return astMethod != null;
                 }
                 private boolean hasEnclosingMethod(){
-                    return !((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
-                              || (searchType.equals(LocalExamplesProvider.EXTENDED_TYPE_SEARCH))
-                              || (searchType.equals(LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH))
-                              //this is a Class annotation
-                              || (searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY));
+                    return !!((searchType.equals(LocalExamplesProvider.CLASS_FIELD_SEARCH)) 
+                            || (searchType.equals(LocalExamplesProvider.EXTENDED_TYPE_SEARCH))
+                            || (searchType.equals(LocalExamplesProvider.IMPLEENTED_TYPE_SEARCH))
+                            //this is a Class annotation
+                            || ((searchType.equals(LocalExamplesProvider.USED_ANNOTATION_SEARCH) && astMethod == ContentProvider.EMPTY))
+                            
+                          );
                   }
             });
             

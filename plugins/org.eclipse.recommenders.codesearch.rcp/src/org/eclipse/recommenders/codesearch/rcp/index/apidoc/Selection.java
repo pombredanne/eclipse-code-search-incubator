@@ -42,6 +42,10 @@ public class Selection {
     public boolean isError() {
         return exception != null;
     }
+    
+    public boolean hasMethod(){        
+        return method!=null;
+    }
 
     IMethod element() {
         if(method != ContentProvider.EMPTY || method!=null)
