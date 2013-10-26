@@ -54,7 +54,7 @@ public class CodesearchIndexModule extends AbstractModule {
 
     private void configureDirectory() {
         try {
-            final File folder = findOrCreateIndexFolder();
+            File folder = findOrCreateIndexFolder();           
             deleteOldLocks(folder);
             final FSDirectory directory = FSDirectory.open(folder);
             bind(Directory.class).annotatedWith(CodeSearch.class).toInstance(directory);
@@ -73,10 +73,18 @@ public class CodesearchIndexModule extends AbstractModule {
         }
     }
 
-    private File findOrCreateIndexFolder() {
+    public static File findOrCreateIndexFolder() {
         final File basedir = CodesearchIndexPlugin.getDefault().getStateLocation().toFile();
-        final File indexdir = new File(basedir, "index_v7");
+        File indexdir = new File(basedir, "index_v7");
         indexdir.mkdirs();
+        if(CodesearchIndexPlugin.getDefault().getPreferenceStore().getBoolean(PreferencePage.P_USE_CUSTOM_LOC)){
+            File customFolder = new File(
+                    CodesearchIndexPlugin.getDefault().getPreferenceStore().getString(PreferencePage.P_CUSTOM_LOC)
+                    );
+            if(customFolder.exists() && customFolder.canWrite()){
+                indexdir = customFolder;
+            }
+        }
         return indexdir;
     }
 

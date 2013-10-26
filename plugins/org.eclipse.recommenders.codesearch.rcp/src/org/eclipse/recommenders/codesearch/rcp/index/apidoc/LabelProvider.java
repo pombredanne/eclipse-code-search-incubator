@@ -42,6 +42,8 @@ import org.eclipse.jface.viewers.StyledCellLabelProvider;
 import org.eclipse.jface.viewers.ViewerCell;
 import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
+import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
+import org.eclipse.recommenders.internal.codesearch.rcp.PreferencePage;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.ASTNodeUtils;
 import org.eclipse.recommenders.utils.IOUtils;
@@ -286,21 +288,29 @@ public class LabelProvider extends StyledCellLabelProvider {
        
         ranges.add(new StyleRange(0, header.length(), Display.getDefault().getSystemColor(SWT.COLOR_DARK_GRAY), null));
         summary = header+summary;
-        final Color color = Display.getDefault().getSystemColor(SWT.COLOR_YELLOW);
-
-        for (final String term : searchterms)
-        {
-
-            int index = header.length();
-            while (true) {
-                index = indexOfIgnoreCase(summary, term, index);
-                if (index == -1) {
-                    break;
+        
+        if(CodesearchIndexPlugin.getDefault().getPreferenceStore()
+                .getBoolean(PreferencePage.P_HIGHLIGHT_SUMMARY)){
+            
+            final String[] s = CodesearchIndexPlugin.getDefault().getPreferenceStore().getString(PreferencePage.P_HIGHLIGHT_COLOR).split(",");
+            final Color color = new Color( Display.getCurrent(), Integer.parseInt(s[0]), Integer.parseInt(s[1]), Integer.parseInt(s[2]));
+           
+    
+            for (final String term : searchterms)
+            {
+    
+                int index = header.length();
+                while (true) {
+                    index = indexOfIgnoreCase(summary, term, index);
+                    if (index == -1) {
+                        break;
+                    }
+                    ranges.add(new StyleRange(index, term.length(), null, color));
+                    index += term.length();
                 }
-                ranges.add(new StyleRange(index, term.length(), null, color));
-                index += term.length();
             }
         }
+        
         cell.setFont(JFaceResources.getTextFont());
         cell.setStyleRanges(ranges.toArray(new StyleRange[0]));
         cell.setText(summary);

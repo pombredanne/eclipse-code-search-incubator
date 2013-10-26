@@ -56,13 +56,18 @@ import org.eclipse.recommenders.codesearch.rcp.index.Fields;
 import org.eclipse.recommenders.codesearch.rcp.index.indexer.BindingHelper;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.CodeSearcher;
 import org.eclipse.recommenders.codesearch.rcp.index.searcher.SearchResult;
+import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexModule;
+import org.eclipse.recommenders.internal.codesearch.rcp.CodesearchIndexPlugin;
+import org.eclipse.recommenders.internal.codesearch.rcp.PreferencePage;
 import org.eclipse.recommenders.apidocs.rcp.JavaSelectionSubscriber;
 import org.eclipse.recommenders.rcp.JavaElementSelectionEvent;
 import org.eclipse.recommenders.rcp.JavaElementSelectionEvent.JavaElementSelectionLocation;
 import org.eclipse.recommenders.utils.Pair;
 import org.eclipse.recommenders.rcp.JavaElementResolver;
 import org.eclipse.recommenders.rcp.utils.JdtUtils;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import com.google.common.base.Optional;
 import com.google.common.base.Stopwatch;
@@ -93,6 +98,7 @@ public class LocalExamplesProvider extends ApidocProvider {
     private ASTNode selectedNode;
     private ASTNode parentNode;
     private String searchType;
+    private int maxHits;
 
 
     List<String> searchterms;
@@ -103,6 +109,7 @@ public class LocalExamplesProvider extends ApidocProvider {
     {
         this.searcher = searcher;
         this.jdtResolver = jdtResolver;
+        this.maxHits = CodesearchIndexPlugin.getDefault().getPreferenceStore().getInt(PreferencePage.P_MAX_HITS);
     }
 
     @JavaSelectionSubscriber
@@ -123,7 +130,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         }
 
         final BooleanQuery query = createQuery();
-        final SearchResult searchResult = searcher.lenientSearch(query, 1000);
+        final SearchResult searchResult = searcher.lenientSearch(query, maxHits);
         stopMeasurement();
 
         runSyncInUiThread(new Renderer(searchResult, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
@@ -146,7 +153,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         }
 
         final BooleanQuery query = createQuery();
-        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
+        final SearchResult searchResults = searcher.lenientSearch(query, maxHits);
         stopMeasurement();
 
         runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
@@ -186,7 +193,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         if(query == null){
             return;
         }
-        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
+        final SearchResult searchResults = searcher.lenientSearch(query, maxHits);
         stopMeasurement();
         
         runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
@@ -218,7 +225,7 @@ public class LocalExamplesProvider extends ApidocProvider {
         if(query == null){
             return;
         }
-        final SearchResult searchResults = searcher.lenientSearch(query, 1000);
+        final SearchResult searchResults = searcher.lenientSearch(query, maxHits);
         stopMeasurement();
         
         runSyncInUiThread(new Renderer(searchResults, parent, searchType, varType, watch.toString(), jdtResolver, searchterms));
@@ -284,6 +291,8 @@ public class LocalExamplesProvider extends ApidocProvider {
         searchterms = new ArrayList<String>();
         Term term;
         searchType = METHOD_INVOCATION_SEARCH;
+        if(!isSearchTypeEnabled())
+            return null;
         term = prepareSearchTerm(Fields.USED_METHODS, BindingHelper.getIdentifier((MethodInvocation) selectedNode).get());
         query.add(new TermQuery(term), Occur.MUST);
         searchterms.add(simpleNode.getIdentifier());
@@ -297,6 +306,9 @@ public class LocalExamplesProvider extends ApidocProvider {
         searchterms = new ArrayList<String>();
         Term term;
         searchType = USED_ANNOTATION_SEARCH;
+        if(!isSearchTypeEnabled())
+            return null;
+        
         term = prepareSearchTerm(Fields.ANNOTATIONS, BindingHelper.getTypeIdentifier(simpleNode).get());
         query.add(new TermQuery(term), Occur.MUST);
         searchterms.add(simpleNode.getIdentifier());
@@ -316,6 +328,9 @@ public class LocalExamplesProvider extends ApidocProvider {
                 if(location == TypeDeclaration.SUPERCLASS_TYPE_PROPERTY)
                 {
                     searchType = EXTENDED_TYPE_SEARCH;
+                    if(!isSearchTypeEnabled())
+                        return null;
+                    
                     Term term = prepareSearchTerm(Fields.ALL_EXTENDED_TYPES, BindingHelper.getTypeIdentifier(simpleNode).get());
                     query.add(new TermQuery(term), Occur.MUST);
                     searchterms.add(simpleNode.getIdentifier());
@@ -323,6 +338,9 @@ public class LocalExamplesProvider extends ApidocProvider {
                 else if(location == TypeDeclaration.SUPER_INTERFACE_TYPES_PROPERTY)
                 {
                     searchType = IMPLEENTED_TYPE_SEARCH;
+                    if(!isSearchTypeEnabled())
+                        return null;
+                    
                     Term term = prepareSearchTerm(Fields.ALL_IMPLEMENTED_TYPES, BindingHelper.getTypeIdentifier(simpleNode).get());
                     query.add(new TermQuery(term), Occur.MUST);
                     searchterms.add(simpleNode.getIdentifier());
@@ -332,6 +350,9 @@ public class LocalExamplesProvider extends ApidocProvider {
                if(location == MethodDeclaration.THROWN_EXCEPTIONS_PROPERTY)
                {
                    searchType = CHECKED_EXCEPTION_SEARCH;
+                   if(!isSearchTypeEnabled())
+                       return null;
+                   
                    Term term = prepareSearchTerm(Fields.CHECKED_EXCEPTIONS, BindingHelper.getTypeIdentifier(simpleNode).get());
                    query.add(new TermQuery(term), Occur.MUST);
                    searchterms.add(simpleNode.getIdentifier());                   
@@ -339,6 +360,9 @@ public class LocalExamplesProvider extends ApidocProvider {
                else if(location == MethodDeclaration.RETURN_TYPE2_PROPERTY || location == MethodDeclaration.RETURN_TYPE_PROPERTY)
                {
                    searchType = RETURN_TYPE_SEARCH;
+                   if(!isSearchTypeEnabled())
+                       return null;
+                   
                    Term term = prepareSearchTerm(Fields.RETURN_TYPE, BindingHelper.getTypeIdentifier(simpleNode).get());
                    query.add(new TermQuery(term), Occur.MUST);
                    searchterms.add(simpleNode.getIdentifier());    
@@ -348,6 +372,9 @@ public class LocalExamplesProvider extends ApidocProvider {
                 // Method Parameter Declaration
                 if (parentNode.getLocationInParent() == MethodDeclaration.PARAMETERS_PROPERTY) {
                     searchType = METHOD_PARAMETER_SEARCH;
+                    if(!isSearchTypeEnabled())
+                        return null;
+                    
                     Term term = prepareSearchTerm(
                             Fields.PARAMETER_TYPES, BindingHelper
                                     .getTypeIdentifier(simpleNode).get());
@@ -357,6 +384,9 @@ public class LocalExamplesProvider extends ApidocProvider {
             case ASTNode.FIELD_DECLARATION:
                 if (parentNode.getLocationInParent() == TypeDeclaration.BODY_DECLARATIONS_PROPERTY) {
                     searchType = CLASS_FIELD_SEARCH;
+                    if(!isSearchTypeEnabled())
+                        return null;
+                    
                     Term term = prepareSearchTerm(
                             Fields.FIELD_TYPE, BindingHelper
                                     .getTypeIdentifier(simpleNode).get());
@@ -373,6 +403,8 @@ public class LocalExamplesProvider extends ApidocProvider {
     {
         // TODO: cleanup needed
         searchType = VAR_USAGE_SEARCH;
+        if(!isSearchTypeEnabled())
+            return null;
         final BooleanQuery query = new BooleanQuery();
         final Term typeTerm = prepareSearchTerm(Fields.VARIABLE_TYPE, varType);
         final TermQuery typeQuery = new TermQuery(typeTerm);
@@ -525,7 +557,9 @@ public class LocalExamplesProvider extends ApidocProvider {
         return node.isDeclaration() || (loc == SimpleType.NAME_PROPERTY) || (loc == MarkerAnnotation.TYPE_NAME_PROPERTY)
                 || (loc == SingleMemberAnnotation.TYPE_NAME_PROPERTY) || (loc == MethodInvocation.NAME_PROPERTY);
     }
-
+    private boolean isSearchTypeEnabled(){
+        return CodesearchIndexPlugin.getDefault().getPreferenceStore().getBoolean(searchType);
+    }
     private void clear() {
         event = null;
         enclosingMethod = null;
@@ -536,5 +570,6 @@ public class LocalExamplesProvider extends ApidocProvider {
         jdtVarType = null;
         selectedNode=null;
         selectedNode=null;
+        maxHits = CodesearchIndexPlugin.getDefault().getPreferenceStore().getInt(PreferencePage.P_MAX_HITS);
     }
 }

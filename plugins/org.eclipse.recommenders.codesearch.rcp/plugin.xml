@@ -4,10 +4,9 @@
    <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            category="org.eclipse.recommenders.rcp.category.preferences"
             class="org.eclipse.recommenders.internal.codesearch.rcp.PreferencePage"
             id="org.eclipse.recommenders.codesearch.rcp.index.page1"
-            name="Code-search">
+            name="Local Code Snippet Search">
       </page>
    </extension>
    <extension
@@ -23,6 +22,15 @@
             image="icons/obj16/search.png"
             name="Local Code Examples">
       </provider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            category="org.eclipse.recommenders.codesearch.rcp.index.page1"
+            class="org.eclipse.recommenders.internal.codesearch.rcp.SearchTypesPreferences"
+            id="org.eclipse.recommenders.codesearch.rcp.page2"
+            name="search types">
+      </page>
    </extension>
 
 </plugin>
